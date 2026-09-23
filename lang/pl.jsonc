@@ -49,5 +49,9 @@
 	"hosts_sum": "%s, główny: %s",
 	"src_auto": "auto",
 	"src_saved": "zapisany",
-	"src_env": "z SIO_LANG"
+	"src_env": "z SIO_LANG",
+	"k_quotes": "cytaty",
+	"on": "wł.",
+	"off": "wył.",
+	"quotes_set": "cytaty są teraz %s"
 }

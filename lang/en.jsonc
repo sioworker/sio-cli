@@ -48,5 +48,9 @@
 	"hosts_sum": "%s, main: %s",
 	"src_auto": "auto",
 	"src_saved": "saved",
-	"src_env": "from SIO_LANG"
+	"src_env": "from SIO_LANG",
+	"k_quotes": "quotes",
+	"on": "on",
+	"off": "off",
+	"quotes_set": "quotes are now %s"
 }

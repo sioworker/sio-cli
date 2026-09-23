@@ -5,7 +5,8 @@ Register-ArgumentCompleter -Native -CommandName sio -ScriptBlock {
 	$s = ($w | Select-Object -Skip 1) -join ' '
 	$c = switch -regex ($s) {
 		'^$' { 'config', 'ping', 'info', 'tree', 'upload', 'probs', 'subs' }
-		'^config$' { 'hosts', 'lang' }
+		'^config$' { 'hosts', 'lang', 'quotes' }
+		'^config quotes$' { 'on', 'off' }
 		'^config hosts$' { 'add', 'rm', 'main', 'token' }
 		'^config hosts add$' { '--main' }
 		'^(config hosts (rm|main|token)|ping|info|tree)$' { sio config hosts 2>$null | % { $_.Substring(2).Split(' ')[0] } }

@@ -48,5 +48,9 @@
 	"hosts_sum": "%s, main wun: %s",
 	"src_auto": "auto lol",
 	"src_saved": "savd",
-	"src_env": "frum SIO_LANG"
+	"src_env": "frum SIO_LANG",
+	"k_quotes": "quotez",
+	"on": "on",
+	"off": "off",
+	"quotes_set": "quotez iz now %s, wisdum"
 }

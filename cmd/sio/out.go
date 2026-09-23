@@ -142,6 +142,37 @@ func less(s string) bool {
 	return cmd.Run() == nil
 }
 
+func wrap(s string, w int) []string {
+	ls, l := []string{}, ""
+	for _, x := range strings.Fields(s) {
+		if l != "" && utf8.RuneCountInString(l+" "+x) > w {
+			ls, l = append(ls, l), x
+		} else if l == "" {
+			l = x
+		} else {
+			l += " " + x
+		}
+	}
+	return append(ls, l)
+}
+
+func quote() {
+	q, has := sio.RandQuote()
+	if !has {
+		return
+	}
+	w, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil || w < 20 {
+		w = 80
+	}
+	ls := wrap("\""+q.Text+"\"", min(w-4, 76))
+	fmt.Println()
+	for _, l := range ls {
+		fmt.Println("  " + co(dim+";3", l))
+	}
+	fmt.Println("    " + co(dim, "- ") + co(dim+";"+cyn, q.Author))
+}
+
 func score(v any) string { // api gives int, null or raw "int:000100"
 	switch x := v.(type) {
 	case float64:

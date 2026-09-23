@@ -12,9 +12,10 @@ type Host struct {
 }
 
 type Cfg struct {
-	Main  string           `json:"main"`
-	Lang  string           `json:"lang,omitempty"`
-	Hosts map[string]*Host `json:"hosts"`
+	Main   string           `json:"main"`
+	Lang   string           `json:"lang,omitempty"`
+	Quotes *bool            `json:"display_quotes,omitempty"`
+	Hosts  map[string]*Host `json:"hosts"`
 }
 
 func CfgPath() string {

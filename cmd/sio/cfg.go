@@ -11,6 +11,13 @@ import (
 	"sio-cli"
 )
 
+func onoff(b bool) string {
+	if b {
+		return sio.T("on")
+	}
+	return sio.T("off")
+}
+
 func cfgCmd(c *sio.Cfg, args []string) {
 	if len(args) == 0 {
 		src, lc := sio.T("src_auto"), sio.LangCode(c.Lang)
@@ -23,7 +30,7 @@ func cfgCmd(c *sio.Cfg, args []string) {
 		if mn == "" {
 			mn = "-"
 		}
-		rows := [][]cell{{{sio.T("k_cfg"), dim}, {sio.CfgPath(), ""}}, {{sio.T("k_hosts"), dim}, {sio.T("hosts_sum", fmt.Sprint(len(c.Hosts)), mn), ""}}, {{sio.T("k_lang"), dim}, {lc + " (" + sio.LangName(lc) + "), " + src, ""}}}
+		rows := [][]cell{{{sio.T("k_cfg"), dim}, {sio.CfgPath(), ""}}, {{sio.T("k_hosts"), dim}, {sio.T("hosts_sum", fmt.Sprint(len(c.Hosts)), mn), ""}}, {{sio.T("k_lang"), dim}, {lc + " (" + sio.LangName(lc) + "), " + src, ""}}, {{sio.T("k_quotes"), dim}, {onoff(c.QuotesOn()), ""}}}
 		tbl(os.Stdout, []string{"", ""}, rows)
 		fmt.Fprintln(os.Stderr, ce(dim, cfgUsage))
 		return
@@ -125,6 +132,20 @@ func cfgCmd(c *sio.Cfg, args []string) {
 		default:
 			die(sio.T("unk_cmd", ce(cyn, "config hosts "+sub)) + "\n" + cfgUsage)
 		}
+	case "quotes":
+		if len(args) == 0 {
+			fmt.Println(sio.T("k_quotes")+":", co(cyn, onoff(c.QuotesOn())))
+			return
+		}
+		if args[0] != "on" && args[0] != "off" {
+			die(sio.T("usage") + " sio config quotes on|off")
+		}
+		v := args[0] == "on"
+		c.Quotes = &v
+		if err := c.Save(); err != nil {
+			die(err.Error())
+		}
+		ok(sio.T("quotes_set", co(cyn, onoff(v))))
 	case "lang":
 		ls := sio.Langs()
 		if len(args) == 0 {

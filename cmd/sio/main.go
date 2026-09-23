@@ -7,16 +7,19 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/term"
+
 	"sio-cli"
 )
 
-const cfgUsage = `  sio config [hosts|lang]
+const cfgUsage = `  sio config [hosts|lang|quotes]
   sio config hosts [add|rm|main|token]
   sio config hosts add [--main] <name> <domain> [token]
   sio config hosts rm <name>
   sio config hosts main <name>
   sio config hosts token <name> [token]
-  sio config lang [code|auto]`
+  sio config lang [code|auto]
+  sio config quotes [on|off]`
 
 const usage = cfgUsage + `
   sio ping [name]
@@ -97,5 +100,8 @@ func main() {
 		subsCmd(c, args)
 	default:
 		die(sio.T("unk_cmd", ce(cyn, cmd)) + "\n" + usage)
+	}
+	if c.QuotesOn() && term.IsTerminal(int(os.Stdout.Fd())) { // never when piped
+		quote()
 	}
 }

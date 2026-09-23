@@ -27,5 +27,10 @@
 	"pending": "pending",
 	"no_probs": "no problems visible in %s",
 	"no_subs": "no submissions in %s",
-	"trunc": "%s: only the last 20 submissions are shown"
+	"trunc": "%s: only the last 20 submissions are shown",
+	"k_contest": "contest",
+	"no_contests": "no contests visible on %s",
+	"not_api": "%s answered with a web page, not the api (blocked network or wrong url?)",
+	"why": "Learn why this happens.",
+	"too_long": "Output too long, displaying using less"
 }

@@ -3,6 +3,7 @@ package sio
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -12,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var ErrHTML = errors.New("not the api")
 
 func (h *Host) do(req *http.Request) ([]byte, error) {
 	if h.Token != "" {
@@ -29,7 +32,13 @@ func (h *Host) do(req *http.Request) ([]byte, error) {
 		if json.Unmarshal(b, &e) == nil && e.Detail != "" {
 			return nil, fmt.Errorf("%d: %s", res.StatusCode, e.Detail)
 		}
+		if !strings.Contains(res.Header.Get("Content-Type"), "json") { // html error page, dont dump it
+			return nil, fmt.Errorf("%d: %s", res.StatusCode, http.StatusText(res.StatusCode))
+		}
 		return nil, fmt.Errorf("%d: %s", res.StatusCode, strings.TrimSpace(string(b)))
+	}
+	if !strings.Contains(res.Header.Get("Content-Type"), "json") { // block pages etc come back as 200 html
+		return nil, ErrHTML
 	}
 	return b, nil
 }
@@ -59,6 +68,16 @@ type Sub struct {
 	Score  *int      `json:"score"`
 	Status string    `json:"status"`
 	Prob   string    `json:"-"`
+}
+
+type Contest struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (h *Host) Contests() ([]Contest, error) {
+	var cs []Contest
+	return cs, h.get("/api/contest_list", &cs)
 }
 
 func (h *Host) Probs(ct string) ([]Prob, error) {

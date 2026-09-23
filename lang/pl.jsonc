@@ -1,3 +1,4 @@
+// jezyk dla prawdziwych patriotow
 {
 	"usage": "użycie:",
 	"no_main": "nie podano hosta i nie ma głównego, użyj %s",
@@ -27,5 +28,10 @@
 	"pending": "w toku",
 	"no_probs": "brak widocznych zadań w %s",
 	"no_subs": "brak zgłoszeń w %s",
-	"trunc": "%s: widać tylko 20 ostatnich zgłoszeń"
+	"trunc": "%s: widać tylko 20 ostatnich zgłoszeń",
+	"k_contest": "konkurs",
+	"no_contests": "brak widocznych konkursów na %s",
+	"not_api": "%s odpowiedział stroną www, nie api (zablokowana sieć albo zły adres?)",
+	"why": "Dowiedz się, dlaczego tak się dzieje.",
+	"too_long": "Za długie wyjście, wyświetlam w less"
 }

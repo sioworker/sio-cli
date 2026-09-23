@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed lang/*.json
+//go:embed lang/*.jsonc
 var langFS embed.FS
 
 var L = map[string]string{}
@@ -28,16 +28,75 @@ func LangCode() string {
 	return "en"
 }
 
+func jsonc(b []byte) []byte { // drop // and /* */ comments, then trailing commas
+	o, i, n, str := []byte{}, 0, len(b), false
+	for i < n {
+		c := b[i]
+		if str {
+			if c == '\\' && i+1 < n {
+				o = append(o, c)
+				i++
+				c = b[i]
+			} else if c == '"' {
+				str = false
+			}
+		} else if c == '"' {
+			str = true
+		} else if c == '/' && i+1 < n && b[i+1] == '/' {
+			for i < n && b[i] != '\n' {
+				i++
+			}
+			continue
+		} else if c == '/' && i+1 < n && b[i+1] == '*' {
+			i += 2
+			for i+1 < n && !(b[i] == '*' && b[i+1] == '/') {
+				i++
+			}
+			i += 2
+			continue
+		}
+		o = append(o, c)
+		i++
+	}
+	b, o, i, n, str = o, []byte{}, 0, len(o), false
+	for i < n {
+		c := b[i]
+		if str {
+			if c == '\\' && i+1 < n {
+				o = append(o, c)
+				i++
+				c = b[i]
+			} else if c == '"' {
+				str = false
+			}
+		} else if c == '"' {
+			str = true
+		} else if c == ',' {
+			j := i + 1
+			for j < n && (b[j] == ' ' || b[j] == '\t' || b[j] == '\r' || b[j] == '\n') {
+				j++
+			}
+			if j < n && (b[j] == '}' || b[j] == ']') {
+				i++
+				continue
+			}
+		}
+		o = append(o, c)
+		i++
+	}
+	return o
+}
+
 func merge(b []byte, err error) {
 	if err == nil {
-		json.Unmarshal(b, &L)
+		json.Unmarshal(jsonc(b), &L)
 	}
 }
 
-func LoadLang(code string) { // en -> built-in code -> ~/.config/sio/lang/code.json
-	merge(langFS.ReadFile("lang/en.json"))
-	merge(langFS.ReadFile("lang/" + code + ".json"))
-	merge(os.ReadFile(filepath.Join(filepath.Dir(CfgPath()), "lang", code+".json")))
+func LoadLang(code string) { // en -> built-in code -> ~/.config/sio/lang/code.jsonc
+	merge(langFS.ReadFile("lang/en.jsonc"))
+	merge(langFS.ReadFile("lang/" + code + ".jsonc"))
+	merge(os.ReadFile(filepath.Join(filepath.Dir(CfgPath()), "lang", code+".jsonc")))
 }
 
 func T(k string, a ...any) string {

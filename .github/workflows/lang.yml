@@ -15,4 +15,4 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: go test -run Lang -v .
+      - run: go test -run "Lang|Jsonc" -v .

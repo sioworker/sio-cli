@@ -2,14 +2,19 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"strings"
+	"time"
 	"unicode/utf8"
+
+	"golang.org/x/term"
 
 	"sio-cli"
 )
 
-const red, grn, ylw, cyn, dim, bold = "31", "32", "33", "36", "2", "1"
+const red, grn, ylw, cyn, gry, dim, bold = "31", "32", "33", "36", "90", "2", "1"
 
 var colOut, colErr = tty(os.Stdout), tty(os.Stderr)
 
@@ -26,6 +31,13 @@ func col(on bool, c, s string) string {
 		return s
 	}
 	return "\x1b[" + c + "m" + s + "\x1b[0m"
+}
+
+func link(on bool, url, s string) string { // osc 8, plain url when piped
+	if !on {
+		return s + " " + url
+	}
+	return "\x1b]8;;" + url + "\x1b\\" + s + "\x1b]8;;\x1b\\"
 }
 
 func co(c, s string) string { return col(colOut, c, s) }
@@ -57,7 +69,7 @@ func box(t string, rows [][2]string) {
 
 type cell struct{ s, c string }
 
-func tbl(hd []string, rows [][]cell) {
+func tbl(out io.Writer, hd []string, rows [][]cell) {
 	n := utf8.RuneCountInString
 	w := make([]int, len(hd))
 	for i, h := range hd {
@@ -77,7 +89,7 @@ func tbl(hd []string, rows [][]cell) {
 			}
 			o += co(c.c, s)
 		}
-		fmt.Println(o)
+		fmt.Fprintln(out, o)
 	}
 	if colOut { // no header when piped
 		h := []cell{}
@@ -88,6 +100,23 @@ func tbl(hd []string, rows [][]cell) {
 	}
 	for _, r := range rows {
 		ln(r)
+	}
+}
+
+func page(hd, s string) { // hd shown first, then all of it in less if taller than the term
+	fmt.Println(hd)
+	fd := int(os.Stdout.Fd())
+	_, ht, err := term.GetSize(fd)
+	if !term.IsTerminal(fd) || err != nil || strings.Count(s, "\n")+1 <= ht {
+		fmt.Print(s)
+		return
+	}
+	warn(sio.T("too_long"))
+	time.Sleep(time.Second)
+	cmd := exec.Command("less", "-R")
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = strings.NewReader(hd+"\n"+s), os.Stdout, os.Stderr
+	if cmd.Run() != nil {
+		fmt.Print(s)
 	}
 }
 

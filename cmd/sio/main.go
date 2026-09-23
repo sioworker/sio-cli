@@ -6,8 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
+
+	"golang.org/x/term"
 
 	"sio-cli"
 )
@@ -19,6 +23,7 @@ const usage = `  sio add-host [--main] <name> <domain> [token]
   sio token <name> [token]
   sio ping [name]
   sio info [name]
+  sio tree [name]
   sio upload <[host/]contest> <prob|file> [file]
   sio probs <[host/]contest>
   sio subs <[host/]contest> [prob]`
@@ -50,6 +55,28 @@ func hct(c *sio.Cfg, arg string) (string, *sio.Host, string) { // [host/]contest
 	}
 	hn, h := host(c, hn)
 	return hn, h, ct
+}
+
+func probs(hn string, h *sio.Host, ct string) []sio.Prob {
+	ps, err := h.Probs(ct)
+	if err != nil && strings.HasPrefix(err.Error(), "5") { // problem_list 500s on some contests, fall back to the web page
+		if ps, err = h.ProbsWeb(ct); err == nil {
+			warn(sio.T("probs_web", ce(cyn, hn+"/"+ct)))
+		}
+	}
+	if err != nil {
+		fail(hn, err)
+	}
+	return ps
+}
+
+var texRe, texCmd = regexp.MustCompile(`\\[a-zA-Z]+\{([^{}]*)\}`), regexp.MustCompile(`\\[a-zA-Z]+ ?`)
+
+func tex(s string) string { // $k$-inwersje, \mbox{x} -> k-inwersje, x
+	for texRe.MatchString(s) {
+		s = texRe.ReplaceAllString(s, "$1")
+	}
+	return strings.TrimSpace(texCmd.ReplaceAllString(strings.ReplaceAll(s, "$", ""), ""))
 }
 
 func askToken(h *sio.Host) string {
@@ -225,6 +252,77 @@ func main() {
 		var b strings.Builder
 		tbl(&b, []string{sio.T("k_contest"), sio.T("k_name")}, rows)
 		page(hd, b.String())
+	case "tree":
+		n := ""
+		if len(args) > 0 {
+			n = args[0]
+		}
+		n, h := host(c, n)
+		na := func() { die(sio.T("tree_na", ce(cyn, n))) }
+		cs, err := h.Contests()
+		if err != nil && strings.HasPrefix(err.Error(), "404") {
+			na()
+		}
+		if err != nil {
+			fail(n, err)
+		}
+		if len(cs) == 0 {
+			warn(sio.T("no_contests", ce(cyn, n)))
+			return
+		}
+		first, err := h.Probs(cs[0].ID)
+		if err != nil && strings.HasPrefix(err.Error(), "404") { // no problem_list on old oioioi
+			na()
+		}
+		if err != nil {
+			first = nil
+		}
+		if term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd())) {
+			treeUI(n, h, cs, first)
+			return
+		}
+		pss, errs := make([][]sio.Prob, len(cs)), make([]error, len(cs))
+		var wg sync.WaitGroup
+		for i, ct := range cs {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				pss[i], errs[i] = fetch(h, ct.ID)
+			}()
+		}
+		wg.Wait()
+		lk := func(u, s string) string { // clickable in a tty, plain text when piped
+			if colOut {
+				return link(true, u, s)
+			}
+			return s
+		}
+		var b strings.Builder
+		for i, ct := range cs {
+			if i > 0 {
+				b.WriteString("\n")
+			}
+			fmt.Fprintln(&b, co(bold+";"+cyn, lk(h.URL+"/c/"+ct.ID+"/", ct.ID)), co(dim, ct.Name))
+			ps, w := pss[i], 0
+			if errs[i] != nil {
+				fmt.Fprintln(&b, co(dim, "└── ")+co(red, "✗ "+errs[i].Error()))
+				continue
+			}
+			if len(ps) == 0 {
+				fmt.Fprintln(&b, co(dim, "└── "+sio.T("empty")))
+			}
+			for _, p := range ps {
+				w = max(w, len(p.Short))
+			}
+			for j, p := range ps {
+				br := "├── "
+				if j == len(ps)-1 {
+					br = "└── "
+				}
+				fmt.Fprintln(&b, co(dim, br)+lk(h.URL+"/c/"+ct.ID+"/p/"+p.Short+"/", co(cyn, p.Short+strings.Repeat(" ", w-len(p.Short)))+"  "+tex(p.Name)))
+			}
+		}
+		fmt.Print(b.String())
 	case "upload", "up":
 		need(args, 2, "upload <[host/]contest> <prob|file> [file]")
 		hn, h, ct := hct(c, args[0])
@@ -242,25 +340,24 @@ func main() {
 	case "probs":
 		need(args, 1, "probs <[host/]contest>")
 		hn, h, ct := hct(c, args[0])
-		ps, err := h.Probs(ct)
-		if err != nil {
-			fail(hn, err)
-		}
+		ps := probs(hn, h, ct)
 		if len(ps) == 0 {
 			warn(sio.T("no_probs", ce(cyn, hn+"/"+ct)))
 		}
 		rows := [][]cell{}
 		for _, p := range ps {
-			st, sc, l := cell{"", ""}, "-", "-"
+			st, sc, l := cell{"-", dim}, "-", "-"
 			if p.Res != nil && p.Res.Status != "" {
 				st, sc = stat(p.Res.Status), score(p.Res.Score)
 			}
 			if p.Left != nil {
 				l = fmt.Sprint(*p.Left)
 			}
-			rows = append(rows, []cell{{p.Short, cyn}, {p.Name, ""}, {sc, bold}, {l, dim}, st})
+			rows = append(rows, []cell{{p.Short, cyn}, {tex(p.Name), ""}, {sc, bold}, {l, dim}, st})
 		}
-		tbl(os.Stdout, []string{sio.T("k_prob"), sio.T("k_name"), sio.T("k_score"), sio.T("k_left"), sio.T("k_stat")}, rows)
+		var b strings.Builder
+		tbl(&b, []string{sio.T("k_prob"), sio.T("k_name"), sio.T("k_score"), sio.T("k_left"), sio.T("k_stat")}, rows)
+		page("", b.String())
 	case "subs":
 		need(args, 1, "subs <[host/]contest> [prob]")
 		hn, h, ct := hct(c, args[0])
@@ -268,11 +365,7 @@ func main() {
 		if len(args) > 1 {
 			pn = args[1:]
 		} else {
-			ps, err := h.Probs(ct)
-			if err != nil {
-				fail(hn, err)
-			}
-			for _, p := range ps {
+			for _, p := range probs(hn, h, ct) {
 				pn = append(pn, p.Short)
 			}
 		}
@@ -299,7 +392,9 @@ func main() {
 			}
 			rows = append(rows, []cell{{fmt.Sprint(s.ID), dim}, {s.Prob, cyn}, {s.Date.Local().Format("2006-01-02 15:04"), ""}, {sc, bold}, stat(s.Status)})
 		}
-		tbl(os.Stdout, []string{sio.T("k_id"), sio.T("k_prob"), sio.T("k_date"), sio.T("k_score"), sio.T("k_stat")}, rows)
+		var b strings.Builder
+		tbl(&b, []string{sio.T("k_id"), sio.T("k_prob"), sio.T("k_date"), sio.T("k_score"), sio.T("k_stat")}, rows)
+		page("", b.String())
 	default:
 		die(sio.T("unk_cmd", ce(cyn, cmd)) + "\n" + usage)
 	}

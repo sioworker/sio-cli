@@ -5,14 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
+
+var cl = &http.Client{Timeout: 30 * time.Second}
 
 var ErrHTML = errors.New("not the api")
 
@@ -21,7 +25,7 @@ func (h *Host) do(req *http.Request) ([]byte, error) {
 		req.Header.Set("Authorization", "Token "+h.Token)
 	}
 	req.Header.Set("Accept", "application/json")
-	res, err := http.DefaultClient.Do(req)
+	res, err := cl.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +87,28 @@ func (h *Host) Contests() ([]Contest, error) {
 func (h *Host) Probs(ct string) ([]Prob, error) {
 	var ps []Prob
 	return ps, h.get("/api/c/"+ct+"/problem_list/", &ps)
+}
+
+var probRe = regexp.MustCompile(`href="/c/[^/"]+/p/([a-z0-9_-]+)/"[^>]*>([^<]+)</a>`)
+
+func (h *Host) ProbsWeb(ct string) ([]Prob, error) { // scrape /c/ct/p/ as anon, no scores
+	res, err := cl.Get(h.URL + "/c/" + ct + "/p/")
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	b, _ := io.ReadAll(res.Body)
+	ps, seen := []Prob{}, map[string]bool{}
+	for _, m := range probRe.FindAllStringSubmatch(string(b), -1) {
+		if !seen[m[1]] {
+			seen[m[1]] = true
+			ps = append(ps, Prob{Short: m[1], Name: strings.TrimSpace(html.UnescapeString(m[2]))})
+		}
+	}
+	if len(ps) == 0 {
+		return nil, fmt.Errorf("%d: no problems on %s/c/%s/p/", res.StatusCode, h.URL, ct)
+	}
+	return ps, nil
 }
 
 func (h *Host) Subs(ct, prob string) ([]Sub, bool, error) { // last 20 only, bool=truncated

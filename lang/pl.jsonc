@@ -33,5 +33,10 @@
 	"no_contests": "brak widocznych konkursów na %s",
 	"not_api": "%s odpowiedział stroną www, nie api (zablokowana sieć albo zły adres?)",
 	"why": "Dowiedz się, dlaczego tak się dzieje.",
-	"too_long": "Za długie wyjście, wyświetlam w less"
+	"too_long": "Za długie wyjście, wyświetlam w less",
+	"probs_web": "api padło na %s, zadania wzięte ze strony (bez wyników)",
+	"tree_na": "Drzewo niedostępne na %s (to oioioi nie ma api listy konkursów/zadań)",
+	"empty": "(brak zadań)",
+	"loading": "wczytywanie",
+	"tree_help": "↑↓/jk ruch  ←→/hl zwiń  spacja/enter otwórz  q wyjście"
 }

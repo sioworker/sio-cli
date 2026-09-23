@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -103,21 +104,42 @@ func tbl(out io.Writer, hd []string, rows [][]cell) {
 	}
 }
 
+var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m|\x1b\]8;;[^\x1b]*\x1b\\\\`)
+
+func rows(s string, w int) int { // screen rows incl wrapping
+	n := 0
+	for _, l := range strings.Split(strings.TrimSuffix(s, "\n"), "\n") {
+		n += max(1, (utf8.RuneCountInString(ansiRe.ReplaceAllString(l, ""))+w-1)/w)
+	}
+	return n
+}
+
 func page(hd, s string) { // hd shown first, then all of it in less if taller than the term
-	fmt.Println(hd)
+	all := s
+	if hd != "" {
+		fmt.Println(hd)
+		all = hd + "\n" + s
+	}
 	fd := int(os.Stdout.Fd())
-	_, ht, err := term.GetSize(fd)
-	if !term.IsTerminal(fd) || err != nil || strings.Count(s, "\n")+1 <= ht {
+	w, ht, err := term.GetSize(fd)
+	if !term.IsTerminal(fd) || err != nil || w < 1 || rows(all, w) < ht { // < so the prompt still fits
 		fmt.Print(s)
 		return
 	}
 	warn(sio.T("too_long"))
 	time.Sleep(time.Second)
-	cmd := exec.Command("less", "-R")
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = strings.NewReader(hd+"\n"+s), os.Stdout, os.Stderr
-	if cmd.Run() != nil {
+	if !less(all) {
 		fmt.Print(s)
 	}
+}
+
+func less(s string) bool {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return false
+	}
+	cmd := exec.Command("less", "-R")
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = strings.NewReader(s), os.Stdout, os.Stderr
+	return cmd.Run() == nil
 }
 
 func score(v any) string { // api gives int, null or raw "int:000100"

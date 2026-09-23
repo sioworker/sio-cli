@@ -32,5 +32,10 @@
 	"no_contests": "no contests visible on %s",
 	"not_api": "%s answered with a web page, not the api (blocked network or wrong url?)",
 	"why": "Learn why this happens.",
-	"too_long": "Output too long, displaying using less"
+	"too_long": "Output too long, displaying using less",
+	"probs_web": "api failed on %s, got the problems from the website instead (no scores)",
+	"tree_na": "Tree not available on %s (its oioioi has no contest/problem list api)",
+	"empty": "(no problems)",
+	"loading": "loading",
+	"tree_help": "↑↓/jk move  ←→/hl fold  space/enter open  q quit"
 }

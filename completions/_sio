@@ -10,6 +10,7 @@ if ((CURRENT == 2)); then
 		'token:set host token'
 		'ping:check auth'
 		'info:show contests'
+		'tree:contests and their problems'
 		'upload:submit a solution'
 		'probs:list problems'
 		'subs:list own submissions'
@@ -19,6 +20,6 @@ if ((CURRENT == 2)); then
 fi
 case $words[2] in
 add-host) ((CURRENT == 3)) && _values opt '--main[make it the main host]' ;;
-rm-host|main|token|ping|info) ((CURRENT == 3)) && _describe host hosts ;;
+rm-host|main|token|ping|info|tree) ((CURRENT == 3)) && _describe host hosts ;;
 upload|up) ((CURRENT >= 4)) && _files ;;
 esac

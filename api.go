@@ -36,7 +36,7 @@ func (h *Host) do(req *http.Request) ([]byte, error) {
 func (h *Host) Ping() (string, error) {
 	req, _ := http.NewRequest("GET", h.URL+"/api/auth_ping", nil)
 	b, err := h.do(req)
-	return strings.Trim(string(b), "\"\n"), err
+	return strings.TrimPrefix(strings.Trim(string(b), "\"\n"), "pong "), err
 }
 
 func (h *Host) Submit(contest, prob, file string) (string, error) {

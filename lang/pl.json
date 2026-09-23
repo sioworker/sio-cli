@@ -1,0 +1,22 @@
+{
+	"usage": "użycie:",
+	"no_main": "nie podano hosta i nie ma głównego, użyj %s",
+	"unk_host": "nieznany host %s",
+	"unk_cmd": "nieznana komenda %s",
+	"tok_ask": "token (weź go z %s): ",
+	"multi_file": "więcej niż jeden %s, podaj plik wprost",
+	"no_file": "brak pliku dla %s",
+	"added": "dodano %s, zalogowano jako %s",
+	"added_noauth": "dodano %s, ale logowanie nie wyszło: %s",
+	"removed": "usunięto %s",
+	"main_set": "%s jest teraz głównym hostem",
+	"tok_set": "zapisano token dla %s",
+	"no_hosts": "brak hostów, dodaj jakiś przez %s",
+	"ping_ok": "%s: zalogowano jako %s",
+	"bad_tok": "zły token dla %s, ustaw nowy przez %s",
+	"sub_ok": "wysłano",
+	"k_file": "plik",
+	"k_prob": "zadanie",
+	"k_id": "id",
+	"k_url": "link"
+}

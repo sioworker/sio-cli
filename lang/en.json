@@ -1,0 +1,22 @@
+{
+	"usage": "usage:",
+	"no_main": "no host given and no main host set, run %s",
+	"unk_host": "unknown host %s",
+	"unk_cmd": "unknown cmd %s",
+	"tok_ask": "token (get it at %s): ",
+	"multi_file": "more than one %s, pass the file explicitly",
+	"no_file": "no file for %s",
+	"added": "added %s, logged in as %s",
+	"added_noauth": "added %s, but auth failed: %s",
+	"removed": "removed %s",
+	"main_set": "%s is now the main host",
+	"tok_set": "saved token for %s",
+	"no_hosts": "no hosts yet, add one with %s",
+	"ping_ok": "%s: logged in as %s",
+	"bad_tok": "bad token for %s, set a new one with %s",
+	"sub_ok": "submitted",
+	"k_file": "file",
+	"k_prob": "problem",
+	"k_id": "id",
+	"k_url": "url"
+}

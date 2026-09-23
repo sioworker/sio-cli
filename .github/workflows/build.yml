@@ -3,9 +3,9 @@ name: build
 on:
   push:
     branches: [main]
-    paths: ['**.go', go.mod, go.sum]
+    paths: ['**.go', go.mod, go.sum, 'lang/**']
   pull_request:
-    paths: ['**.go', go.mod, go.sum]
+    paths: ['**.go', go.mod, go.sum, 'lang/**']
 
 permissions:
   contents: write
@@ -19,6 +19,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go vet ./...
+      - run: go test ./...
       - name: build
         run: |
           mkdir dist

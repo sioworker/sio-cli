@@ -18,5 +18,14 @@
 	"k_file": "file",
 	"k_prob": "problem",
 	"k_id": "id",
-	"k_url": "url"
+	"k_url": "url",
+	"k_name": "name",
+	"k_score": "score",
+	"k_left": "left",
+	"k_stat": "status",
+	"k_date": "date",
+	"pending": "pending",
+	"no_probs": "no problems visible in %s",
+	"no_subs": "no submissions in %s",
+	"trunc": "%s: only the last 20 submissions are shown"
 }

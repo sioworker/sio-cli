@@ -10,6 +10,8 @@ if ((CURRENT == 2)); then
 		'token:set host token'
 		'ping:check auth'
 		'upload:submit a solution'
+		'probs:list problems'
+		'subs:list own submissions'
 	)
 	_describe cmd cmds
 	return

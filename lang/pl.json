@@ -18,5 +18,14 @@
 	"k_file": "plik",
 	"k_prob": "zadanie",
 	"k_id": "id",
-	"k_url": "link"
+	"k_url": "link",
+	"k_name": "nazwa",
+	"k_score": "wynik",
+	"k_left": "zostało",
+	"k_stat": "status",
+	"k_date": "data",
+	"pending": "w toku",
+	"no_probs": "brak widocznych zadań w %s",
+	"no_subs": "brak zgłoszeń w %s",
+	"trunc": "%s: widać tylko 20 ostatnich zgłoszeń"
 }

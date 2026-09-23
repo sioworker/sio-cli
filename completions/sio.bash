@@ -1,7 +1,7 @@
 _sio() {
 	local cur=${COMP_WORDS[COMP_CWORD]} cmd=${COMP_WORDS[1]}
 	if ((COMP_CWORD == 1)); then
-		COMPREPLY=($(compgen -W 'add-host rm-host hosts main token ping upload' -- "$cur"))
+		COMPREPLY=($(compgen -W 'add-host rm-host hosts main token ping upload probs subs' -- "$cur"))
 		return
 	fi
 	case $cmd in

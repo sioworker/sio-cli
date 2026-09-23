@@ -17,7 +17,9 @@ const usage = `  sio add-host [--main] <name> <domain> [token]
   sio main <name>
   sio token <name> [token]
   sio ping [name]
-  sio upload <[host/]contest> <prob|file> [file]`
+  sio upload <[host/]contest> <prob|file> [file]
+  sio probs <[host/]contest>
+  sio subs <[host/]contest> [prob]`
 
 func need(args []string, n int, u string) {
 	if len(args) < n {
@@ -37,6 +39,15 @@ func host(c *sio.Cfg, name string) (string, *sio.Host) {
 		die(sio.T("unk_host", ce(cyn, name)))
 	}
 	return name, h
+}
+
+func hct(c *sio.Cfg, arg string) (string, *sio.Host, string) { // [host/]contest -> host name, host, contest
+	hn, ct, ok := strings.Cut(arg, "/")
+	if !ok {
+		hn, ct = "", hn
+	}
+	hn, h := host(c, hn)
+	return hn, h, ct
 }
 
 func askToken(h *sio.Host) string {
@@ -177,11 +188,7 @@ func main() {
 		ok(sio.T("ping_ok", co(cyn, n), co(cyn, who)))
 	case "upload", "up":
 		need(args, 2, "upload <[host/]contest> <prob|file> [file]")
-		hn, ct, ok := strings.Cut(args[0], "/")
-		if !ok {
-			hn, ct = "", hn
-		}
-		hn, h := host(c, hn)
+		hn, h, ct := hct(c, args[0])
 		prob, file := args[1], ""
 		if len(args) > 2 {
 			file = args[2]
@@ -193,6 +200,67 @@ func main() {
 			fail(hn, err)
 		}
 		box("✓ "+sio.T("sub_ok"), [][2]string{{sio.T("k_file"), file}, {sio.T("k_prob"), hn + "/" + ct + "/" + prob}, {sio.T("k_id"), id}, {sio.T("k_url"), h.URL + "/c/" + ct + "/s/" + id + "/"}})
+	case "probs":
+		need(args, 1, "probs <[host/]contest>")
+		hn, h, ct := hct(c, args[0])
+		ps, err := h.Probs(ct)
+		if err != nil {
+			fail(hn, err)
+		}
+		if len(ps) == 0 {
+			warn(sio.T("no_probs", ce(cyn, hn+"/"+ct)))
+		}
+		rows := [][]cell{}
+		for _, p := range ps {
+			st, sc, l := cell{"", ""}, "-", "-"
+			if p.Res != nil && p.Res.Status != "" {
+				st, sc = stat(p.Res.Status), score(p.Res.Score)
+			}
+			if p.Left != nil {
+				l = fmt.Sprint(*p.Left)
+			}
+			rows = append(rows, []cell{{p.Short, cyn}, {p.Name, ""}, {sc, bold}, {l, dim}, st})
+		}
+		tbl([]string{sio.T("k_prob"), sio.T("k_name"), sio.T("k_score"), sio.T("k_left"), sio.T("k_stat")}, rows)
+	case "subs":
+		need(args, 1, "subs <[host/]contest> [prob]")
+		hn, h, ct := hct(c, args[0])
+		pn := []string{}
+		if len(args) > 1 {
+			pn = args[1:]
+		} else {
+			ps, err := h.Probs(ct)
+			if err != nil {
+				fail(hn, err)
+			}
+			for _, p := range ps {
+				pn = append(pn, p.Short)
+			}
+		}
+		ss := []sio.Sub{}
+		for _, p := range pn {
+			s, tr, err := h.Subs(ct, p)
+			if err != nil {
+				fail(hn, err)
+			}
+			if tr {
+				warn(sio.T("trunc", ce(cyn, p)))
+			}
+			ss = append(ss, s...)
+		}
+		if len(ss) == 0 {
+			warn(sio.T("no_subs", ce(cyn, hn+"/"+ct)))
+		}
+		sort.Slice(ss, func(i, j int) bool { return ss[i].Date.After(ss[j].Date) })
+		rows := [][]cell{}
+		for _, s := range ss {
+			sc := "-"
+			if s.Score != nil {
+				sc = fmt.Sprint(*s.Score)
+			}
+			rows = append(rows, []cell{{fmt.Sprint(s.ID), dim}, {s.Prob, cyn}, {s.Date.Local().Format("2006-01-02 15:04"), ""}, {sc, bold}, stat(s.Status)})
+		}
+		tbl([]string{sio.T("k_id"), sio.T("k_prob"), sio.T("k_date"), sio.T("k_score"), sio.T("k_stat")}, rows)
 	default:
 		die(sio.T("unk_cmd", ce(cyn, cmd)) + "\n" + usage)
 	}

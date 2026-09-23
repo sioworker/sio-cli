@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	"sio-cli"
 )
 
 const red, grn, ylw, cyn, dim, bold = "31", "32", "33", "36", "2", "1"
@@ -51,4 +53,68 @@ func box(t string, rows [][2]string) {
 		fmt.Println(co(dim, "│ ") + co(dim, r[0]+strings.Repeat(" ", kw-n(r[0]))) + "  " + co(cyn, r[1]) + strings.Repeat(" ", w-kw-2-n(r[1])) + co(dim, " │"))
 	}
 	fmt.Println(co(dim, "╰"+strings.Repeat("─", w+2)+"╯"))
+}
+
+type cell struct{ s, c string }
+
+func tbl(hd []string, rows [][]cell) {
+	n := utf8.RuneCountInString
+	w := make([]int, len(hd))
+	for i, h := range hd {
+		w[i] = n(h)
+	}
+	for _, r := range rows {
+		for i, c := range r {
+			w[i] = max(w[i], n(c.s))
+		}
+	}
+	ln := func(r []cell) {
+		o := ""
+		for i, c := range r {
+			s := c.s
+			if i < len(r)-1 {
+				s += strings.Repeat(" ", w[i]-n(s)+2)
+			}
+			o += co(c.c, s)
+		}
+		fmt.Println(o)
+	}
+	if colOut { // no header when piped
+		h := []cell{}
+		for _, s := range hd {
+			h = append(h, cell{s, dim + ";" + bold})
+		}
+		ln(h)
+	}
+	for _, r := range rows {
+		ln(r)
+	}
+}
+
+func score(v any) string { // api gives int, null or raw "int:000100"
+	switch x := v.(type) {
+	case float64:
+		return fmt.Sprint(int(x))
+	case string:
+		if _, s, ok := strings.Cut(x, ":"); ok {
+			if s = strings.TrimLeft(s, "0"); s == "" {
+				s = "0"
+			}
+			return s
+		}
+		if x != "" {
+			return x
+		}
+	}
+	return "-"
+}
+
+func stat(s string) cell {
+	switch s {
+	case "OK", "INI_OK":
+		return cell{"✓ " + s, grn}
+	case "", "?":
+		return cell{"⋯ " + sio.T("pending"), ylw}
+	}
+	return cell{"✗ " + s, red}
 }

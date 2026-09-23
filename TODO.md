@@ -15,8 +15,8 @@
 
 ## results
 - [ ] after upload, poll the submission status and print the score instead of just the id
-- [ ] `sio subs` - list own submissions for a contest
-- [ ] `sio probs <contest>` - list problems (short name + title)
+- [x] `sio subs` - list own submissions for a contest
+- [x] `sio probs <contest>` - list problems (short name + title)
 
 ## misc
 - [ ] remember last contest per dir so `sio up <prob> <file>` works without it

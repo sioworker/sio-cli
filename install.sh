@@ -130,5 +130,5 @@ comp() { # shell, dir, src, dst
 
 case :$PATH: in *:"$BIN":*) ;; *) warn "$BIN is not in PATH, add it in your shell rc" ;; esac
 ok "next:"
-ok "	- sio lang <lang>"
-ok "	- sio add-host <name> <domain>"
+ok "	- sio config lang <lang>"
+ok "	- sio config hosts add <name> <domain>"

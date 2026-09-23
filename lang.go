@@ -17,7 +17,7 @@ var L = map[string]string{}
 
 func userLang() string { return filepath.Join(filepath.Dir(CfgPath()), "lang") }
 
-func LangCode(saved string) string { // SIO_LANG > sio lang > system > en
+func LangCode(saved string) string { // SIO_LANG > sio config lang > system > en
 	if v := os.Getenv("SIO_LANG"); v != "" {
 		return v
 	}

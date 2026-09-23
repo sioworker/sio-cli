@@ -1,14 +1,15 @@
 _sio() {
-	local cur=${COMP_WORDS[COMP_CWORD]} cmd=${COMP_WORDS[1]}
-	if ((COMP_CWORD == 1)); then
-		COMPREPLY=($(compgen -W 'add-host rm-host hosts main token ping info tree lang upload probs subs' -- "$cur"))
-		return
-	fi
-	case $cmd in
-	add-host) ((COMP_CWORD == 2)) && COMPREPLY=($(compgen -W '--main' -- "$cur")) ;;
-	rm-host | main | token | ping | info | tree) ((COMP_CWORD == 2)) && COMPREPLY=($(compgen -W "$(sio hosts 2>/dev/null | cut -c3- | cut -d' ' -f1)" -- "$cur")) ;;
-	lang) ((COMP_CWORD == 2)) && COMPREPLY=($(compgen -W "$(sio lang 2>/dev/null | cut -c3- | cut -d' ' -f1) auto" -- "$cur")) ;;
-	upload | up) ((COMP_CWORD >= 3)) && COMPREPLY=($(compgen -f -- "$cur")) ;;
+	local cur=${COMP_WORDS[COMP_CWORD]} w="${COMP_WORDS[*]:1:COMP_CWORD-1}" o
+	case $w in
+	"") o='config ping info tree upload probs subs' ;;
+	config) o='hosts lang' ;;
+	"config hosts") o='add rm main token' ;;
+	"config hosts add") o='--main' ;;
+	"config hosts rm" | "config hosts main" | "config hosts token" | ping | info | tree) o=$(sio config hosts 2>/dev/null | cut -c3- | cut -d' ' -f1) ;;
+	"config lang") o="$(sio config lang 2>/dev/null | cut -c3- | cut -d' ' -f1) auto" ;;
+	upload\ * | up\ *) COMPREPLY=($(compgen -f -- "$cur")); return ;;
+	*) return ;;
 	esac
+	COMPREPLY=($(compgen -W "$o" -- "$cur"))
 }
 complete -F _sio sio

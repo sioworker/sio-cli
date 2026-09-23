@@ -92,7 +92,7 @@ func tbl(out io.Writer, hd []string, rows [][]cell) {
 		}
 		fmt.Fprintln(out, o)
 	}
-	if colOut { // no header when piped
+	if colOut && strings.Join(hd, "") != "" { // no header when piped or blank
 		h := []cell{}
 		for _, s := range hd {
 			h = append(h, cell{s, dim + ";" + bold})

@@ -41,5 +41,12 @@
 	"lang_name": "English",
 	"lang_set": "language set to %s (%s)",
 	"unk_lang": "unknown language %s, see %s",
-	"lang_env": "%s is set and wins over this"
+	"lang_env": "%s is set and wins over this",
+	"k_cfg": "config",
+	"k_hosts": "hosts",
+	"k_lang": "language",
+	"hosts_sum": "%s, main: %s",
+	"src_auto": "auto",
+	"src_saved": "saved",
+	"src_env": "from SIO_LANG"
 }

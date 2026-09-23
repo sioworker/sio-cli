@@ -41,5 +41,12 @@
 	"lang_name": "LOLCAT",
 	"lang_set": "langwidge iz now %s (%s), oh hai",
 	"unk_lang": "dunno dis langwidge %s, check %s",
-	"lang_env": "%s iz set n it winz, sry"
+	"lang_env": "%s iz set n it winz, sry",
+	"k_cfg": "catfig",
+	"k_hosts": "hostz",
+	"k_lang": "langwidge",
+	"hosts_sum": "%s, main wun: %s",
+	"src_auto": "auto lol",
+	"src_saved": "savd",
+	"src_env": "frum SIO_LANG"
 }

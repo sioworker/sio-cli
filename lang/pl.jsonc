@@ -42,5 +42,12 @@
 	"lang_name": "polski",
 	"lang_set": "ustawiono język %s (%s)",
 	"unk_lang": "nieznany język %s, zobacz %s",
-	"lang_env": "ustawione jest %s i ma pierwszeństwo"
+	"lang_env": "ustawione jest %s i ma pierwszeństwo",
+	"k_cfg": "konfig",
+	"k_hosts": "hosty",
+	"k_lang": "język",
+	"hosts_sum": "%s, główny: %s",
+	"src_auto": "auto",
+	"src_saved": "zapisany",
+	"src_env": "z SIO_LANG"
 }

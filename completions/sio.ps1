@@ -1,12 +1,16 @@
 Register-ArgumentCompleter -Native -CommandName sio -ScriptBlock {
 	param($word, $ast, $pos)
 	$w = @($ast.CommandElements | % { "$_" })
-	$n = $w.Count; if ($word -eq '') { $n++ } # cursor on a new arg
-	$c = @()
-	if ($n -eq 2) { $c = 'add-host', 'rm-host', 'hosts', 'main', 'token', 'ping', 'info', 'tree', 'lang', 'upload', 'probs', 'subs' }
-	elseif ($n -eq 3 -and $w[1] -eq 'add-host') { $c = '--main' }
-	elseif ($n -eq 3 -and $w[1] -in 'rm-host', 'main', 'token', 'ping', 'info', 'tree') { $c = sio hosts 2>$null | % { $_.Substring(2).Split(' ')[0] } }
-	elseif ($n -eq 3 -and $w[1] -eq 'lang') { $c = @(sio lang 2>$null | % { $_.Substring(2).Split(' ')[0] }) + 'auto' }
-	elseif ($n -ge 4 -and $w[1] -in 'upload', 'up') { $c = Get-ChildItem -Name "$word*" }
+	if ($word -ne '') { $w = $w[0..($w.Count - 2)] } # drop the word being typed
+	$s = ($w | Select-Object -Skip 1) -join ' '
+	$c = switch -regex ($s) {
+		'^$' { 'config', 'ping', 'info', 'tree', 'upload', 'probs', 'subs' }
+		'^config$' { 'hosts', 'lang' }
+		'^config hosts$' { 'add', 'rm', 'main', 'token' }
+		'^config hosts add$' { '--main' }
+		'^(config hosts (rm|main|token)|ping|info|tree)$' { sio config hosts 2>$null | % { $_.Substring(2).Split(' ')[0] } }
+		'^config lang$' { @(sio config lang 2>$null | % { $_.Substring(2).Split(' ')[0] }) + 'auto' }
+		'^(upload|up) ' { Get-ChildItem -Name "$word*" }
+	}
 	$c | ? { $_ -like "$word*" } | % { [System.Management.Automation.CompletionResult]::new($_) }
 }

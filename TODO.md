@@ -23,3 +23,5 @@
 - [ ] guess prob from filename (`abc.cpp` -> `abc`)
 - [ ] update completions for any new cmds
 - [ ] AUR pkg
+
+- [ ] change the main server based on the inet scope (example: while you're connected to talent's STx it auto-switches to oboz.talent.edu.pl instead of szkopul)

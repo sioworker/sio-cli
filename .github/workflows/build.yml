@@ -3,7 +3,9 @@ name: build
 on:
   push:
     branches: [main]
+    paths: ['**.go', go.mod, go.sum]
   pull_request:
+    paths: ['**.go', go.mod, go.sum]
 
 permissions:
   contents: write

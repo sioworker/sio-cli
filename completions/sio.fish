@@ -2,6 +2,10 @@ function __sio_hosts
 	sio hosts | string replace -rf '^. (\S+).*' '$1'
 end
 
+function __sio_langs
+	sio lang | string replace -rf '^. (\S+).*' '$1'
+end
+
 complete -c sio -f
 complete -c sio -n __fish_use_subcommand -a add-host -d 'add a host'
 complete -c sio -n __fish_use_subcommand -a rm-host -d 'remove a host'
@@ -11,6 +15,8 @@ complete -c sio -n __fish_use_subcommand -a token -d 'set host token'
 complete -c sio -n __fish_use_subcommand -a ping -d 'check auth'
 complete -c sio -n __fish_use_subcommand -a info -d 'show contests'
 complete -c sio -n __fish_use_subcommand -a tree -d 'contests and their problems'
+complete -c sio -n __fish_use_subcommand -a lang -d 'set language'
+complete -c sio -n '__fish_seen_subcommand_from lang' -a '(__sio_langs) auto' -d lang
 complete -c sio -n __fish_use_subcommand -a upload -d 'submit a solution'
 complete -c sio -n __fish_use_subcommand -a probs -d 'list problems'
 complete -c sio -n __fish_use_subcommand -a subs -d 'list own submissions'

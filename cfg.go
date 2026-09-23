@@ -13,6 +13,7 @@ type Host struct {
 
 type Cfg struct {
 	Main  string           `json:"main"`
+	Lang  string           `json:"lang,omitempty"`
 	Hosts map[string]*Host `json:"hosts"`
 }
 

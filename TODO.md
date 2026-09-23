@@ -5,7 +5,7 @@
 - [x] nicer msgs, icons + boxes, basically make it look like ai slop (✓ submitted, ✗ 401: bad token, etc)
 - [ ] spinner while uploading
 - [ ] `--json` flag for scripts
-- [x] langs (`lang/*.jsonc`, `SIO_LANG`/`LANG`, overrides in `~/.config/sio/lang/`)
+- [x] langs (`lang/*.jsonc`, `sio lang`, `SIO_LANG`/`LANG`, overrides in `~/.config/sio/lang/`)
 
 ## statements / tests
 - [ ] `sio pdf <contest> <prob>` - get the pdf

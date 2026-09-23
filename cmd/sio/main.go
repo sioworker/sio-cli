@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -24,6 +25,7 @@ const usage = `  sio add-host [--main] <name> <domain> [token]
   sio ping [name]
   sio info [name]
   sio tree [name]
+  sio lang [code|auto]
   sio upload <[host/]contest> <prob|file> [file]
   sio probs <[host/]contest>
   sio subs <[host/]contest> [prob]`
@@ -114,13 +116,13 @@ func fail(hn string, err error) {
 }
 
 func main() {
-	sio.LoadLang(sio.LangCode())
+	c := sio.Load()
+	sio.LoadLang(sio.LangCode(c.Lang))
 	args := os.Args[1:]
 	if len(args) == 0 {
 		fmt.Fprintln(os.Stderr, ce(bold, sio.T("usage"))+"\n"+usage)
 		os.Exit(1)
 	}
-	c := sio.Load()
 	cmd, args := args[0], args[1:]
 	switch cmd {
 	case "add-host":
@@ -323,6 +325,47 @@ func main() {
 			}
 		}
 		fmt.Print(b.String())
+	case "lang":
+		ls := sio.Langs()
+		if len(args) == 0 {
+			cur, w := sio.LangCode(c.Lang), 0
+			for _, l := range ls {
+				w = max(w, len(l))
+			}
+			for _, l := range ls {
+				m := " "
+				if l == cur {
+					m = "*"
+				}
+				if colOut {
+					m = co(dim, "○")
+					if l == cur {
+						m = co(grn, "●")
+					}
+				}
+				fmt.Println(m, co(cyn, l+strings.Repeat(" ", w-len(l))), sio.LangName(l))
+			}
+			if v := os.Getenv("SIO_LANG"); v != "" {
+				warn(sio.T("lang_env", ce(cyn, "SIO_LANG="+v)))
+			}
+			return
+		}
+		if args[0] == "auto" {
+			c.Lang = ""
+		} else if !slices.Contains(ls, args[0]) {
+			die(sio.T("unk_lang", ce(cyn, args[0]), ce(cyn, "sio lang")))
+		} else {
+			c.Lang = args[0]
+		}
+		if err := c.Save(); err != nil {
+			die(err.Error())
+		}
+		sio.L = map[string]string{}
+		sio.LoadLang(sio.LangCode(c.Lang)) // confirm in the new lang
+		ok(sio.T("lang_set", co(cyn, sio.LangCode(c.Lang)), sio.LangName(sio.LangCode(c.Lang))))
+		if v := os.Getenv("SIO_LANG"); v != "" {
+			warn(sio.T("lang_env", ce(cyn, "SIO_LANG="+v)))
+		}
 	case "upload", "up":
 		need(args, 2, "upload <[host/]contest> <prob|file> [file]")
 		hn, h, ct := hct(c, args[0])

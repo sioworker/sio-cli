@@ -38,5 +38,9 @@
 	"tree_na": "Drzewo niedostępne na %s (to oioioi nie ma api listy konkursów/zadań)",
 	"empty": "(brak zadań)",
 	"loading": "wczytywanie",
-	"tree_help": "↑↓/jk ruch  ←→/hl zwiń  spacja/enter otwórz  q wyjście"
+	"tree_help": "↑↓/jk ruch  ←→/hl zwiń  spacja/enter otwórz  q wyjście",
+	"lang_name": "polski",
+	"lang_set": "ustawiono język %s (%s)",
+	"unk_lang": "nieznany język %s, zobacz %s",
+	"lang_env": "ustawione jest %s i ma pierwszeństwo"
 }

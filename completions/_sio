@@ -11,6 +11,7 @@ if ((CURRENT == 2)); then
 		'ping:check auth'
 		'info:show contests'
 		'tree:contests and their problems'
+		'lang:set language'
 		'upload:submit a solution'
 		'probs:list problems'
 		'subs:list own submissions'
@@ -21,5 +22,6 @@ fi
 case $words[2] in
 add-host) ((CURRENT == 3)) && _values opt '--main[make it the main host]' ;;
 rm-host|main|token|ping|info|tree) ((CURRENT == 3)) && _describe host hosts ;;
+lang) ((CURRENT == 3)) && { local -a ls=(${(f)"$(sio lang 2>/dev/null | cut -c3- | cut -d' ' -f1)"} auto); _describe lang ls } ;;
 upload|up) ((CURRENT >= 4)) && _files ;;
 esac

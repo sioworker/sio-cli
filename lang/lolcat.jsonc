@@ -32,5 +32,14 @@
 	"no_contests": "no contestz visible on %s",
 	"not_api": "%s answerd wif a web page, not teh api (blockd network or wrong url? u tell me)",
 	"why": "Lern why dis happenz.",
-	"too_long": "Output tooo long, showin wif less kthxbai"
+	"too_long": "Output tooo long, showin wif less kthxbai",
+	"probs_web": "api broked on %s, stoled teh problemz from da website instead (no scorez)",
+	"tree_na": "Tree not availabl on %s (itz oioioi haz no contest/problem list api, sad)",
+	"empty": "(no problemz here)",
+	"loading": "loadin",
+	"tree_help": "↑↓/jk move  ←→/hl fold  spaec/entr open  q quit kthxbai",
+	"lang_name": "LOLCAT",
+	"lang_set": "langwidge iz now %s (%s), oh hai",
+	"unk_lang": "dunno dis langwidge %s, check %s",
+	"lang_env": "%s iz set n it winz, sry"
 }

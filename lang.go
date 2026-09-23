@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -14,8 +15,16 @@ var langFS embed.FS
 
 var L = map[string]string{}
 
-func LangCode() string {
-	for _, k := range []string{"SIO_LANG", "LC_ALL", "LC_MESSAGES", "LANG"} {
+func userLang() string { return filepath.Join(filepath.Dir(CfgPath()), "lang") }
+
+func LangCode(saved string) string { // SIO_LANG > sio lang > system > en
+	if v := os.Getenv("SIO_LANG"); v != "" {
+		return v
+	}
+	if saved != "" {
+		return saved
+	}
+	for _, k := range []string{"LC_ALL", "LC_MESSAGES", "LANG"} {
 		if v := os.Getenv(k); v != "" {
 			v, _, _ = strings.Cut(v, ".")
 			v, _, _ = strings.Cut(v, "_")
@@ -96,7 +105,32 @@ func merge(b []byte, err error) {
 func LoadLang(code string) { // en -> built-in code -> ~/.config/sio/lang/code.jsonc
 	merge(langFS.ReadFile("lang/en.jsonc"))
 	merge(langFS.ReadFile("lang/" + code + ".jsonc"))
-	merge(os.ReadFile(filepath.Join(filepath.Dir(CfgPath()), "lang", code+".jsonc")))
+	merge(os.ReadFile(filepath.Join(userLang(), code+".jsonc")))
+}
+
+func Langs() []string { // built-in + ~/.config/sio/lang/
+	o, seen := []string{}, map[string]bool{}
+	fs, _ := langFS.ReadDir("lang")
+	us, _ := os.ReadDir(userLang())
+	for _, f := range append(fs, us...) {
+		if c, ok := strings.CutSuffix(f.Name(), ".jsonc"); ok && !seen[c] {
+			seen[c] = true
+			o = append(o, c)
+		}
+	}
+	sort.Strings(o)
+	return o
+}
+
+func LangName(code string) string {
+	m := map[string]string{}
+	if b, err := langFS.ReadFile("lang/" + code + ".jsonc"); err == nil {
+		json.Unmarshal(jsonc(b), &m)
+	}
+	if b, err := os.ReadFile(filepath.Join(userLang(), code+".jsonc")); err == nil {
+		json.Unmarshal(jsonc(b), &m)
+	}
+	return m["lang_name"]
 }
 
 func T(k string, a ...any) string {

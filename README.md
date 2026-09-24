@@ -9,19 +9,19 @@ CLI for submitting to [OIOIOI](https://github.com/sio2project/oioioi)
 
 <br>
 
-Grabs the newest build for your OS/arch (Linux, macOS) and installs it to `~/.local/bin/sio` with fish/bash/zsh completions:
+Grabs the newest autobuild:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | sh
 ```
 
-You can also specify where to put the binary:
+Specify where to put the binary:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | SIO_BIN=/usr/local/bin/ sh
 ```
 
-It asks which completions to install, to skip the question:
+To skip the shell completions question:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | SIO_COMP=none sh
@@ -74,7 +74,7 @@ nix develop github:sioworker/sio-cli
 
 <br>
 
-TODO (currently unavailable)
+Registration on the AUR is paused while they deal with a wave of automated account creation. This is a temporary measure and it is not specific to you or your network. There's no manual registration queue, and we will not be able to respond to requests for new accounts during this time.
 
 </details>
 
@@ -83,7 +83,7 @@ TODO (currently unavailable)
 
 <br>
 
-In PowerShell (installs to `%LOCALAPPDATA%\Programs\sio`, adds it to your PATH):
+In PowerShell (installs to `%LOCALAPPDATA%\Programs\sio`):
 
 ```powershell
 irm https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.ps1 | iex
@@ -97,17 +97,11 @@ irm https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.
 
 ## Setup
 
-Add a host with your API token, which you get from `<host>/api/token` while logged in on the site:
-
 ```sh
 sio config hosts add szkopul szkopul.edu.pl   # asks for the token
 sio config hosts add --main oboz oboz.talent.edu.pl
 sio ping                                      # ✓ oboz: logged in as ...
 ```
-
-The first host you add becomes the main one; `--main` or `sio config hosts main <name>` switch it. Any command that takes a contest also takes `host/contest` to pick a host just for that call, e.g. `sio probs szkopul/kurs-oi`.
-
-Older OIOIOI instances (like the camp one) accept submissions over the API but can't report results. To still see your verdicts in the terminal, log in once:
 
 ```sh
 sio config hosts login oboz   # username + password, only the session gets saved
@@ -143,8 +137,6 @@ sio sub c1 abc.cpp         # sub = submit, prob is taken from the file name
 sio submit -n c1 abc       # dont wait for the results
 ```
 
-It waits until the submission is judged and shows the verdict, colored by score: red under 50, yellow under 80, green from 80 up.
-
 ## Config
 
 ```sh
@@ -155,7 +147,5 @@ sio config hosts token <name>
 sio config lang pl         # en, pl, lolcat(best)
 sio config quotes off      # the random programming quote after each command
 ```
-
-Everything lives in `~/.config/sio/cfg.json`. Your own translations go in `~/.config/sio/lang/<code>.jsonc`.
 
 Run `sio` for all cmds.

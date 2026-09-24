@@ -58,7 +58,17 @@ func die(s string) {
 	os.Exit(1)
 }
 
-func box(t string, rows [][2]string) {
+func cut(s string, w int) string { // to w cols, … if cut
+	if w < 1 {
+		return ""
+	}
+	if r := []rune(s); len(r) > w {
+		return string(r[:w-1]) + "…"
+	}
+	return s
+}
+
+func box(t, tc string, rows [][2]string) { // tc = title color, shrinks to the term width
 	n := utf8.RuneCountInString
 	kw, w := 0, n(t)+2
 	for _, r := range rows {
@@ -67,9 +77,21 @@ func box(t string, rows [][2]string) {
 	for _, r := range rows {
 		w = max(w, kw+2+n(r[1]))
 	}
-	fmt.Println(co(dim, "╭─ ") + co(bold+";"+grn, t) + " " + co(dim, strings.Repeat("─", w-n(t)-1)+"╮"))
+	if tw, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && w+4 > tw { // wider than the term would wrap every line
+		w = max(tw-4, kw+4)
+		t = cut(t, w-2)
+	}
+	fmt.Println(co(dim, "╭─ ") + co(bold+";"+tc, t) + " " + co(dim, strings.Repeat("─", w-n(t)-1)+"╮"))
 	for _, r := range rows {
-		fmt.Println(co(dim, "│ ") + co(dim, r[0]+strings.Repeat(" ", kw-n(r[0]))) + "  " + co(cyn, r[1]) + strings.Repeat(" ", w-kw-2-n(r[1])) + co(dim, " │"))
+		vc, v := cyn, cut(r[1], w-kw-2)
+		if r[0] == sio.T("k_stat") { // status row takes the verdict color
+			vc = tc
+		}
+		cv := co(vc, v)
+		if r[0] == sio.T("k_url") && colOut { // full url stays clickable even when cut
+			cv = link(true, r[1], cv)
+		}
+		fmt.Println(co(dim, "│ ") + co(dim, r[0]+strings.Repeat(" ", kw-n(r[0]))) + "  " + cv + strings.Repeat(" ", w-kw-2-n(v)) + co(dim, " │"))
 	}
 	fmt.Println(co(dim, "╰"+strings.Repeat("─", w+2)+"╯"))
 }
@@ -165,7 +187,11 @@ func wrap(s string, w int) []string {
 func quote() {
 	var q sio.Quote
 	var has bool
-	wait(sio.T("w_quote"), func() { q, has = sio.RandQuote() }) // only slow on the weekly refresh
+	if sio.QuotesStale() {
+		wait(sio.T("w_quote"), func() { q, has = sio.RandQuote() })
+	} else {
+		q, has = sio.RandQuote() // cached, instant, no spinner blink
+	}
 	if !has {
 		return
 	}
@@ -197,6 +223,24 @@ func score(v any) string { // api gives int, null or raw "int:000100"
 		}
 	}
 	return "-"
+}
+
+func scol(n int) string { // <50 red, <80 yellow, else green
+	if n < 50 {
+		return red
+	}
+	if n < 80 {
+		return ylw
+	}
+	return grn
+}
+
+func scell(s string) cell { // score cell colored by value, "-" stays dim
+	var n int
+	if _, err := fmt.Sscan(s, &n); err != nil {
+		return cell{s, dim}
+	}
+	return cell{s, bold + ";" + scol(n)}
 }
 
 func stat(s string) cell {

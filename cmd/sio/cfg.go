@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"slices"
 	"sort"
 	"strings"
+
+	"golang.org/x/term"
 
 	"sio-cli"
 )
@@ -62,7 +65,11 @@ func cfgCmd(c *sio.Cfg, args []string) {
 						m = co(grn, "●")
 					}
 				}
-				fmt.Println(m, co(cyn, k+strings.Repeat(" ", w-len(k))), co(dim, c.Hosts[k].URL))
+				li := ""
+				if c.Hosts[k].Session != "" {
+					li = co(dim, " ("+sio.T("logged_in")+")")
+				}
+				fmt.Println(m, co(cyn, k+strings.Repeat(" ", w-len(k))), co(dim, c.Hosts[k].URL)+li)
 			}
 			return
 		}
@@ -132,6 +139,42 @@ func cfgCmd(c *sio.Cfg, args []string) {
 			}
 			c.Save()
 			ok(sio.T("tok_set", co(cyn, args[0])))
+		case "login":
+			need(args, 1, "config hosts login <name> [user]")
+			_, h := host(c, args[0])
+			u := ""
+			if len(args) > 1 {
+				u = args[1]
+			} else {
+				fmt.Fprint(os.Stderr, ce(cyn, "? "), sio.T("login_user", ce(cyn, h.URL)))
+				u, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+				u = strings.TrimSpace(u)
+			}
+			fmt.Fprint(os.Stderr, ce(cyn, "? "), sio.T("login_pass"))
+			pw, err := term.ReadPassword(int(os.Stdin.Fd())) // no echo
+			fmt.Fprintln(os.Stderr)
+			if err != nil {
+				die(err.Error())
+			}
+			wait(sio.T("w_login", args[0]), func() { err = h.Login(u, string(pw)) })
+			switch {
+			case errors.Is(err, sio.ErrLogin):
+				die(sio.T("login_bad", ce(cyn, args[0])))
+			case errors.Is(err, sio.Err2FA):
+				die(sio.T("login_2fa", ce(cyn, args[0])))
+			case err != nil:
+				fail(args[0], err)
+			}
+			if err := c.Save(); err != nil {
+				die(err.Error())
+			}
+			ok(sio.T("login_ok", co(cyn, args[0]), co(cyn, u)))
+		case "logout":
+			need(args, 1, "config hosts logout <name>")
+			_, h := host(c, args[0])
+			h.Session = ""
+			c.Save()
+			ok(sio.T("logout_ok", co(cyn, args[0])))
 		default:
 			die(sio.T("unk_cmd", ce(cyn, "config hosts "+sub)) + "\n" + cfgUsage)
 		}

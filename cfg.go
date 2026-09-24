@@ -7,8 +7,9 @@ import (
 )
 
 type Host struct {
-	URL   string `json:"url"`
-	Token string `json:"token"`
+	URL     string `json:"url"`
+	Token   string `json:"token"`
+	Session string `json:"session,omitempty"` // web sessionid from sio config hosts login
 }
 
 type Cfg struct {

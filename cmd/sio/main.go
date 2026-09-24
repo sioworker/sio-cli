@@ -13,11 +13,13 @@ import (
 )
 
 const cfgUsage = `  sio config [hosts|lang|quotes]
-  sio config hosts [add|rm|main|token]
+  sio config hosts [add|rm|main|token|login|logout]
   sio config hosts add [--main] <name> <domain> [token]
   sio config hosts rm <name>
   sio config hosts main <name>
   sio config hosts token <name> [token]
+  sio config hosts login <name> [user]
+  sio config hosts logout <name>
   sio config lang [code|auto]
   sio config quotes [on|off]`
 
@@ -25,7 +27,7 @@ const usage = cfgUsage + `
   sio ping [name]
   sio info [name]
   sio tree [name]
-  sio upload <[host/]contest> <prob|file> [file]
+  sio submit [-n] <[host/]contest> <prob|file> [file]
   sio probs <[host/]contest>
   sio subs <[host/]contest> [prob]`
 
@@ -92,7 +94,7 @@ func main() {
 		infoCmd(c, args)
 	case "tree":
 		treeCmd(c, args)
-	case "upload", "up":
+	case "submit", "sub":
 		upCmd(c, args)
 	case "probs":
 		probsCmd(c, args)

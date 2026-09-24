@@ -63,5 +63,21 @@
 	"up_ask": "upload to %s: ",
 	"up_ok": "submitted %s to %s, id %s",
 	"up_pick": "go to a problem to upload",
-	"up_busy": "still uploading, hang on"
+	"up_busy": "still uploading, hang on",
+	"w_judge": "judging %s (%s)",
+	"hidden": "results hidden",
+	"judge_slow": "still judging after 5m, check later with %s",
+	"no_judge": "cant check here",
+	"no_judge_why": "%s runs an older oioioi that cant report results over the api.",
+	"open_web": "See the result on the web.",
+	"need_login": "To see results here, log in with %s",
+	"sess_exp": "your login on %s expired, log in again with %s",
+	"logged_in": "logged in",
+	"login_user": "username on %s: ",
+	"login_pass": "password (not saved): ",
+	"w_login": "logging in to %s",
+	"login_ok": "logged in to %s as %s, saved the session (not the password)",
+	"login_bad": "wrong username or password for %s",
+	"login_2fa": "%s asks for a 2fa code, sio cant do that yet",
+	"logout_ok": "logged out of %s"
 }

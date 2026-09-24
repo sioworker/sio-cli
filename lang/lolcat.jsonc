@@ -63,5 +63,21 @@
 	"up_ask": "upload 2 %s: ",
 	"up_ok": "submittd %s 2 %s, id %s, fingerz crossd",
 	"up_pick": "go 2 a problem first, silly",
-	"up_busy": "still uploadin, hold ur horsez"
+	"up_busy": "still uploadin, hold ur horsez",
+	"w_judge": "judgin %s (%s), no peekin",
+	"hidden": "resultz iz sekrit",
+	"judge_slow": "still judgin aftr 5m, check l8r wif %s",
+	"no_judge": "cant peek here",
+	"no_judge_why": "%s haz old oioioi dat wont tell resultz thru teh api, sad.",
+	"open_web": "Look at ur result on teh web.",
+	"need_login": "2 see resultz here, log in wif %s",
+	"sess_exp": "ur login on %s iz expird, log in again wif %s",
+	"logged_in": "logd in",
+	"login_user": "ur name on %s: ",
+	"login_pass": "sekrit passwurd (i no keep it): ",
+	"w_login": "loggin in 2 %s",
+	"login_ok": "logd in 2 %s as %s, kept teh session (not ur passwurd)",
+	"login_bad": "nope, wrong name or passwurd 4 %s",
+	"login_2fa": "%s wantz a 2fa code, sio cant do dat yet",
+	"logout_ok": "logd out of %s, bai"
 }

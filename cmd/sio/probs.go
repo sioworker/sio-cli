@@ -54,7 +54,7 @@ func probsCmd(c *sio.Cfg, args []string) {
 		if p.Left != nil {
 			l = fmt.Sprint(*p.Left)
 		}
-		rows = append(rows, []cell{{p.Short, cyn}, {tex(p.Name), ""}, {sc, bold}, {l, dim}, st})
+		rows = append(rows, []cell{{p.Short, cyn}, {tex(p.Name), ""}, scell(sc), {l, dim}, st})
 	}
 	var b strings.Builder
 	tbl(&b, []string{sio.T("k_prob"), sio.T("k_name"), sio.T("k_score"), sio.T("k_left"), sio.T("k_stat")}, rows)
@@ -96,7 +96,7 @@ func subsCmd(c *sio.Cfg, args []string) {
 		if s.Score != nil {
 			sc = fmt.Sprint(*s.Score)
 		}
-		rows = append(rows, []cell{{fmt.Sprint(s.ID), dim}, {s.Prob, cyn}, {s.Date.Local().Format("2006-01-02 15:04"), ""}, {sc, bold}, stat(s.Status)})
+		rows = append(rows, []cell{{fmt.Sprint(s.ID), dim}, {s.Prob, cyn}, {s.Date.Local().Format("2006-01-02 15:04"), ""}, scell(sc), stat(s.Status)})
 	}
 	var b strings.Builder
 	tbl(&b, []string{sio.T("k_id"), sio.T("k_prob"), sio.T("k_date"), sio.T("k_score"), sio.T("k_stat")}, rows)

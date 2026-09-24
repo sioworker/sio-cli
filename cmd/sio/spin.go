@@ -30,7 +30,11 @@ func wait(msg string, f func()) { // spinner on stderr while f runs, tty only
 		defer t.Stop()
 		for {
 			errMu.Lock()
-			fmt.Fprint(os.Stderr, "\r\x1b[K"+ce(cyn, fr[i%len(fr)])+" "+ce(dim, *spinMsg.Load()))
+			m := *spinMsg.Load()
+			if tw, _, err := term.GetSize(int(os.Stderr.Fd())); err == nil {
+				m = cut(m, tw-3) // one row only, \x1b[K cant clear a wrapped line
+			}
+			fmt.Fprint(os.Stderr, "\r\x1b[K"+ce(cyn, fr[i%len(fr)])+" "+ce(dim, m))
 			errMu.Unlock()
 			i++
 			select {

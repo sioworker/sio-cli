@@ -19,9 +19,18 @@ type Quote struct {
 
 func (c *Cfg) QuotesOn() bool { return c.Quotes == nil || *c.Quotes } // def on
 
-func RandQuote() (Quote, bool) { // cached a week in the user cache dir
+func quotesPath() string {
 	d, _ := os.UserCacheDir()
-	p := filepath.Join(d, "sio", "quotes.json")
+	return filepath.Join(d, "sio", "quotes.json")
+}
+
+func QuotesStale() bool { // true = RandQuote will hit the net
+	st, err := os.Stat(quotesPath())
+	return err != nil || time.Since(st.ModTime()) > 7*24*time.Hour
+}
+
+func RandQuote() (Quote, bool) { // cached a week in the user cache dir
+	p := quotesPath()
 	if st, err := os.Stat(p); err != nil || time.Since(st.ModTime()) > 7*24*time.Hour {
 		b, err := fetchQuotes()
 		os.MkdirAll(filepath.Dir(p), 0700)

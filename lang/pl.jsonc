@@ -64,5 +64,21 @@
 	"up_ask": "wyślij do %s: ",
 	"up_ok": "wysłano %s do %s, id %s",
 	"up_pick": "najedź na zadanie, żeby wysłać",
-	"up_busy": "jeszcze wysyłam, chwila"
+	"up_busy": "jeszcze wysyłam, chwila",
+	"w_judge": "sprawdzanie %s (%s)",
+	"hidden": "wyniki ukryte",
+	"judge_slow": "dalej się sprawdza po 5m, zobacz później przez %s",
+	"no_judge": "nie da się sprawdzić",
+	"no_judge_why": "%s ma starsze oioioi, które nie podaje wyników przez api.",
+	"open_web": "Zobacz wynik na stronie.",
+	"need_login": "Żeby widzieć tu wyniki, zaloguj się przez %s",
+	"sess_exp": "logowanie na %s wygasło, zaloguj się znowu przez %s",
+	"logged_in": "zalogowano",
+	"login_user": "login na %s: ",
+	"login_pass": "hasło (nie zapisuję go): ",
+	"w_login": "loguję na %s",
+	"login_ok": "zalogowano na %s jako %s, zapisana sesja (nie hasło)",
+	"login_bad": "zły login albo hasło do %s",
+	"login_2fa": "%s chce kodu 2fa, sio jeszcze tego nie umie",
+	"logout_ok": "wylogowano z %s"
 }

@@ -3,12 +3,12 @@
 local w="${words[2,CURRENT-1]}"
 local -a o
 case $w in
-'') o=('config:hosts and language' 'ping:check auth' 'info:show contests' 'tree:contests and their problems' 'upload:submit a solution' 'probs:list problems' 'subs:list own submissions'); _describe cmd o ;;
+'') o=('config:hosts and language' 'ping:check auth' 'info:show contests' 'tree:contests and their problems' 'submit:submit a solution' 'probs:list problems' 'subs:list own submissions'); _describe cmd o ;;
 config) o=('hosts:list/add/remove hosts' 'lang:set language' 'quotes:random quote after cmds'); _describe category o ;;
 'config quotes') o=(on off); _describe state o ;;
-'config hosts') o=('add:add a host' 'rm:remove a host' 'main:set main host' 'token:set host token'); _describe cmd o ;;
+'config hosts') o=('add:add a host' 'rm:remove a host' 'main:set main host' 'token:set host token' 'login:web login, to see results on old oioioi' 'logout:forget the web login'); _describe cmd o ;;
 'config hosts add') _values opt '--main[make it the main host]' ;;
-'config hosts rm'|'config hosts main'|'config hosts token'|ping|info|tree) o=(${(f)"$(sio config hosts 2>/dev/null | cut -c3- | cut -d' ' -f1)"}); _describe host o ;;
+'config hosts rm'|'config hosts main'|'config hosts token'|'config hosts login'|'config hosts logout'|ping|info|tree) o=(${(f)"$(sio config hosts 2>/dev/null | cut -c3- | cut -d' ' -f1)"}); _describe host o ;;
 'config lang') o=(${(f)"$(sio config lang 2>/dev/null | cut -c3- | cut -d' ' -f1)"} auto); _describe lang o ;;
-upload\ *|up\ *) _files ;;
+submit\ *|sub\ *) _files ;;
 esac

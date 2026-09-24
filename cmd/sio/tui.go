@@ -216,12 +216,29 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 		busy, upMsg = true, sio.T("w_up", f, ct+"/"+p)
 		go func() {
 			id, err := h.Submit(ct, p, f)
-			mu.Lock()
-			busy, note = false, seg{"✓ " + sio.T("up_ok", f, ct+"/"+p, id), grn}
-			if err != nil {
-				note = seg{"✗ " + err.Error(), red}
+			if err == nil { // wait for the verdict, like sio up
+				mu.Lock()
+				upMsg = sio.T("w_judge", p, "0s")
+				mu.Unlock()
+				s, _ := judge(h, ct, p, id, func(d time.Duration) {
+					mu.Lock()
+					upMsg = sio.T("w_judge", p, d.Round(time.Second).String())
+					mu.Unlock()
+				})
+				v, vc := verdict(s)
+				if s.Status == noAPI {
+					v += ", " + sio.T("need_login", "sio config hosts login "+hn)
+				} else if s.Status == noSess {
+					v += ", " + sio.T("sess_exp", hn, "sio config hosts login "+hn)
+				}
+				mu.Lock()
+				busy, note = false, seg{v + "  " + sio.T("up_ok", f, ct+"/"+p, id), vc}
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				busy, note = false, seg{"✗ " + err.Error(), red}
+				mu.Unlock()
 			}
-			mu.Unlock()
 			select {
 			case redraw <- true:
 			default:

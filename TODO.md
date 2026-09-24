@@ -14,12 +14,12 @@
 - [ ] `sio test <prob> <bin>` - run the bin on the samples locally, diff vs `.out`, before uploading - stonks (make it look like ai slop 2)
 
 ## results
-- [ ] after upload, poll the submission status and print the score instead of just the id
+- [x] after upload, poll the submission status and print the score instead of just the id
 - [x] `sio subs` - list own submissions for a contest
 - [x] `sio probs <contest>` - list problems (short name + title)
 
 ## misc
-- [ ] remember last contest per dir so `sio up <prob> <file>` works without it
+- [ ] remember last contest per dir so `sio submit <prob> <file>` works without it
 - [ ] guess prob from filename (`abc.cpp` -> `abc`)
 - [ ] update completions for any new cmds
 - [ ] AUR pkg

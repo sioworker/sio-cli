@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"golang.org/x/term"
 
@@ -18,7 +19,9 @@ func treeCmd(c *sio.Cfg, args []string) {
 	}
 	n, h := host(c, n)
 	na := func() { die(sio.T("tree_na", ce(cyn, n))) }
-	cs, err := h.Contests()
+	var cs []sio.Contest
+	var err error
+	wait(sio.T("w_contests", n), func() { cs, err = h.Contests() })
 	if err != nil && strings.HasPrefix(err.Error(), "404") {
 		na()
 	}
@@ -29,7 +32,8 @@ func treeCmd(c *sio.Cfg, args []string) {
 		warn(sio.T("no_contests", ce(cyn, n)))
 		return
 	}
-	first, err := h.Probs(cs[0].ID)
+	var first []sio.Prob
+	wait(sio.T("w_probs", cs[0].ID), func() { first, err = h.Probs(cs[0].ID) })
 	if err != nil && strings.HasPrefix(err.Error(), "404") { // no problem_list on old oioioi
 		na()
 	}
@@ -41,15 +45,19 @@ func treeCmd(c *sio.Cfg, args []string) {
 		return
 	}
 	pss, errs := make([][]sio.Prob, len(cs)), make([]error, len(cs))
-	var wg sync.WaitGroup
-	for i, ct := range cs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			pss[i], errs[i] = fetch(h, ct.ID)
-		}()
-	}
-	wg.Wait()
+	var dn atomic.Int32
+	wait(sio.T("w_probs_n", "0/"+fmt.Sprint(len(cs))), func() {
+		var wg sync.WaitGroup
+		for i, ct := range cs {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				pss[i], errs[i] = fetch(h, ct.ID)
+				spinSet(sio.T("w_probs_n", fmt.Sprint(dn.Add(1))+"/"+fmt.Sprint(len(cs))))
+			}()
+		}
+		wg.Wait()
+	})
 	lk := func(u, s string) string { // clickable in a tty, plain text when piped
 		if colOut {
 			return link(true, u, s)

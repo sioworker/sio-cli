@@ -37,7 +37,7 @@
 	"tree_na": "Tree not available on %s (its oioioi has no contest/problem list api)",
 	"empty": "(no problems)",
 	"loading": "loading",
-	"tree_help": "↑↓/jk move  ←→/hl fold  space/enter open  q quit",
+	"tree_help": "↑↓/jk move  ←→/hl fold  space/enter open  u upload  q quit",
 	"lang_name": "English",
 	"lang_set": "language set to %s (%s)",
 	"unk_lang": "unknown language %s, see %s",
@@ -52,5 +52,16 @@
 	"k_quotes": "quotes",
 	"on": "on",
 	"off": "off",
-	"quotes_set": "quotes are now %s"
+	"quotes_set": "quotes are now %s",
+	"w_ping": "checking login on %s",
+	"w_contests": "fetching contests from %s",
+	"w_probs": "fetching problems of %s",
+	"w_probs_n": "fetching problems %s",
+	"w_subs": "fetching submissions for %s (%s)",
+	"w_up": "uploading %s to %s",
+	"w_quote": "fetching quotes",
+	"up_ask": "upload to %s: ",
+	"up_ok": "submitted %s to %s, id %s",
+	"up_pick": "go to a problem to upload",
+	"up_busy": "still uploading, hang on"
 }

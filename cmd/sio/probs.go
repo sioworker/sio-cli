@@ -10,11 +10,18 @@ import (
 )
 
 func probs(hn string, h *sio.Host, ct string) []sio.Prob {
-	ps, err := h.Probs(ct)
-	if err != nil && strings.HasPrefix(err.Error(), "5") { // problem_list 500s on some contests, fall back to the web page
-		if ps, err = h.ProbsWeb(ct); err == nil {
-			warn(sio.T("probs_web", ce(cyn, hn+"/"+ct)))
+	var ps []sio.Prob
+	var err error
+	web := false
+	wait(sio.T("w_probs", hn+"/"+ct), func() {
+		ps, err = h.Probs(ct)
+		if err != nil && strings.HasPrefix(err.Error(), "5") { // problem_list 500s on some contests, fall back to the web page
+			ps, err = h.ProbsWeb(ct)
+			web = err == nil
 		}
+	})
+	if web {
+		warn(sio.T("probs_web", ce(cyn, hn+"/"+ct)))
 	}
 	if err != nil {
 		fail(hn, err)
@@ -66,8 +73,11 @@ func subsCmd(c *sio.Cfg, args []string) {
 		}
 	}
 	ss := []sio.Sub{}
-	for _, p := range pn {
-		s, tr, err := h.Subs(ct, p)
+	for i, p := range pn {
+		var s []sio.Sub
+		var tr bool
+		var err error
+		wait(sio.T("w_subs", p, fmt.Sprint(i+1)+"/"+fmt.Sprint(len(pn))), func() { s, tr, err = h.Subs(ct, p) })
 		if err != nil {
 			fail(hn, err)
 		}

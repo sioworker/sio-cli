@@ -37,7 +37,7 @@
 	"tree_na": "Tree not availabl on %s (itz oioioi haz no contest/problem list api, sad)",
 	"empty": "(no problemz here)",
 	"loading": "loadin",
-	"tree_help": "↑↓/jk move  ←→/hl fold  spaec/entr open  q quit kthxbai",
+	"tree_help": "↑↓/jk move  ←→/hl fold  spaec/entr open  u uploadz  q quit kthxbai",
 	"lang_name": "LOLCAT",
 	"lang_set": "langwidge iz now %s (%s), oh hai",
 	"unk_lang": "dunno dis langwidge %s, check %s",
@@ -52,5 +52,16 @@
 	"k_quotes": "quotez",
 	"on": "on",
 	"off": "off",
-	"quotes_set": "quotez iz now %s, wisdum"
+	"quotes_set": "quotez iz now %s, wisdum",
+	"w_ping": "checkin ur login on %s",
+	"w_contests": "fetchin contestz frum %s",
+	"w_probs": "fetchin problemz of %s",
+	"w_probs_n": "fetchin problemz %s",
+	"w_subs": "fetchin submishuns 4 %s (%s)",
+	"w_up": "uploadin %s 2 %s, fingerz crossd",
+	"w_quote": "fetchin wisdum",
+	"up_ask": "upload 2 %s: ",
+	"up_ok": "submittd %s 2 %s, id %s, fingerz crossd",
+	"up_pick": "go 2 a problem first, silly",
+	"up_busy": "still uploadin, hold ur horsez"
 }

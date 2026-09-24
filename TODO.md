@@ -3,7 +3,7 @@
 ## output
 - [x] colors (ok=green, err=red, host/contest/prob=cyan), off when not a tty or `NO_COLOR` set
 - [x] nicer msgs, icons + boxes, basically make it look like ai slop (✓ submitted, ✗ 401: bad token, etc)
-- [ ] spinner while uploading
+- [x] spinner while uploading, fetching etc
 - [ ] `--json` flag for scripts
 - [x] langs (`lang/*.jsonc`, `sio config lang`, `SIO_LANG`/`LANG`, overrides in `~/.config/sio/lang/`)
 

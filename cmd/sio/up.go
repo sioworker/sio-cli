@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,22 +9,29 @@ import (
 	"sio-cli"
 )
 
-func resolve(arg string) (string, string) { // -> prob, file
+func guess(arg string) (string, string, error) { // -> prob, file
 	if ext := filepath.Ext(arg); ext != "" {
-		return strings.TrimSuffix(filepath.Base(arg), ext), arg
+		return strings.TrimSuffix(filepath.Base(arg), ext), arg, nil
 	}
 	if _, err := os.Stat(arg + ".cpp"); err == nil {
-		return arg, arg + ".cpp"
+		return arg, arg + ".cpp", nil
 	}
 	m, _ := filepath.Glob(arg + ".*")
 	if len(m) == 1 {
-		return filepath.Base(arg), m[0]
+		return filepath.Base(arg), m[0], nil
 	}
 	if len(m) > 1 {
-		die(sio.T("multi_file", ce(cyn, arg+".*")))
+		return arg, "", errors.New(sio.T("multi_file", arg+".*"))
 	}
-	die(sio.T("no_file", ce(cyn, arg)))
-	return "", ""
+	return arg, "", errors.New(sio.T("no_file", arg))
+}
+
+func resolve(arg string) (string, string) {
+	p, f, err := guess(arg)
+	if err != nil {
+		die(err.Error())
+	}
+	return p, f
 }
 
 func upCmd(c *sio.Cfg, args []string) {
@@ -35,7 +43,9 @@ func upCmd(c *sio.Cfg, args []string) {
 	} else {
 		prob, file = resolve(args[1])
 	}
-	id, err := h.Submit(ct, prob, file)
+	var id string
+	var err error
+	wait(sio.T("w_up", file, hn+"/"+ct+"/"+prob), func() { id, err = h.Submit(ct, prob, file) })
 	if err != nil {
 		fail(hn, err)
 	}

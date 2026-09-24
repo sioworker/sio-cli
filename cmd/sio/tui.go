@@ -90,7 +90,7 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 			keys <- string(b[:n])
 		}
 	}()
-	tick := time.NewTicker(250 * time.Millisecond) // catch resizes, no SIGWINCH on windows
+	tick := time.NewTicker(100 * time.Millisecond) // catch resizes (no SIGWINCH on windows) + spin
 	defer tick.Stop()
 	rows := func() []trow {
 		rs := []trow{}
@@ -109,6 +109,12 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 		return rs
 	}
 	cur, top, lw, lh, rev := 0, 0, 0, 0, -1 // rev = contest to scroll into view once opened
+	type inp struct {
+		c, p int
+		buf  []rune
+	}
+	var in *inp // file prompt after u
+	busy, upMsg, note := false, "", seg{}
 	draw := func() {
 		mu.Lock()
 		defer mu.Unlock()
@@ -182,8 +188,45 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 			b.WriteString("\x1b[K\r\n")
 			i++
 		}
-		b.WriteString(fit([]seg{{sio.T("tree_help"), dim}}, w) + "\x1b[K\x1b[J")
+		ft := []seg{{sio.T("tree_help"), dim}}
+		switch {
+		case in != nil:
+			n := ns[in.c]
+			ft = []seg{{"↑ " + sio.T("up_ask", n.ct.ID+"/"+n.ps[in.p].Short), cyn}, {string(in.buf), ""}, {"█", dim}}
+		case busy:
+			fr := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+			ft = []seg{{fr[time.Now().UnixMilli()/100%10] + " ", cyn}, {upMsg, dim}}
+			if note.s != "" {
+				ft = append(ft, seg{"  " + note.s, note.c})
+			}
+		case note.s != "":
+			ft = []seg{note}
+		}
+		b.WriteString(fit(ft, w) + "\x1b[K\x1b[J")
 		fmt.Print(b.String())
+	}
+	send := func() { // upload in.buf in the bg, mu held
+		n, f := ns[in.c], strings.TrimSpace(string(in.buf))
+		ct, p := n.ct.ID, n.ps[in.p].Short
+		in = nil
+		if f == "" {
+			note = seg{"✗ " + sio.T("no_file", p), red}
+			return
+		}
+		busy, upMsg = true, sio.T("w_up", f, ct+"/"+p)
+		go func() {
+			id, err := h.Submit(ct, p, f)
+			mu.Lock()
+			busy, note = false, seg{"✓ " + sio.T("up_ok", f, ct+"/"+p, id), grn}
+			if err != nil {
+				note = seg{"✗ " + err.Error(), red}
+			}
+			mu.Unlock()
+			select {
+			case redraw <- true:
+			default:
+			}
+		}()
 	}
 	open := func(i int) {
 		n := ns[i]
@@ -208,7 +251,10 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 		select {
 		case <-redraw:
 		case <-tick.C:
-			if w, ht, _ := term.GetSize(int(os.Stdout.Fd())); w == lw && ht == lh {
+			mu.Lock()
+			b := busy
+			mu.Unlock()
+			if w, ht, _ := term.GetSize(int(os.Stdout.Fd())); w == lw && ht == lh && !b {
 				continue
 			}
 		case k, ok := <-keys:
@@ -216,12 +262,55 @@ func treeUI(hn string, h *sio.Host, cs []sio.Contest, first []sio.Prob) {
 				return
 			}
 			mu.Lock()
+			if in != nil { // typing the file path
+				if k == "\x03" {
+					mu.Unlock()
+					return
+				}
+				if k == "\x1b" {
+					in = nil
+				} else if !strings.HasPrefix(k, "\x1b") { // arrows etc ignored
+					for _, ch := range k { // a chunk can hold a few keys or a paste
+						if ch == '\r' || ch == '\n' {
+							send()
+							break
+						} else if ch == 127 || ch == 8 {
+							if len(in.buf) > 0 {
+								in.buf = in.buf[:len(in.buf)-1]
+							}
+						} else if ch >= 32 {
+							in.buf = append(in.buf, ch)
+						}
+					}
+				}
+				mu.Unlock()
+				continue
+			}
 			rs, bh := rows(), max(1, lh-2)
 			r := rs[min(max(cur, 0), len(rs)-1)]
+			if !busy {
+				note = seg{}
+			}
 			switch k {
-			case "q", "\x1b", "\x03":
+			case "\x03":
 				mu.Unlock()
 				return
+			case "q", "\x1b":
+				if busy { // quitting would kill the upload mid way
+					note = seg{"! " + sio.T("up_busy"), ylw}
+					break
+				}
+				mu.Unlock()
+				return
+			case "u":
+				if busy {
+					note = seg{"! " + sio.T("up_busy"), ylw}
+				} else if r.p >= 0 {
+					_, f, _ := guess(ns[r.c].ps[r.p].Short)
+					in = &inp{r.c, r.p, []rune(f)}
+				} else {
+					note = seg{"! " + sio.T("up_pick"), ylw}
+				}
 			case "\x1b[A", "k":
 				cur--
 			case "\x1b[B", "j":

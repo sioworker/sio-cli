@@ -96,7 +96,10 @@ func cfgCmd(c *sio.Cfg, args []string) {
 			if err := c.Save(); err != nil {
 				die(err.Error())
 			}
-			if who, err := h.Ping(); err != nil {
+			var who string
+			var err error
+			wait(sio.T("w_ping", rest[0]), func() { who, err = h.Ping() })
+			if err != nil {
 				if errors.Is(err, sio.ErrHTML) {
 					err = errors.New(sio.T("not_api", rest[0]))
 				}

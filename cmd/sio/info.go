@@ -13,7 +13,9 @@ func pingCmd(c *sio.Cfg, args []string) {
 		n = args[0]
 	}
 	n, h := host(c, n)
-	who, err := h.Ping()
+	var who string
+	var err error
+	wait(sio.T("w_ping", n), func() { who, err = h.Ping() })
 	if err != nil {
 		fail(n, err)
 	}
@@ -26,12 +28,15 @@ func infoCmd(c *sio.Cfg, args []string) {
 		n = args[0]
 	}
 	n, h := host(c, n)
-	who, err := h.Ping()
+	var who string
+	var cs []sio.Contest
+	var err error
+	wait(sio.T("w_ping", n), func() { who, err = h.Ping() })
 	if err != nil {
 		fail(n, err)
 	}
 	hd := co(grn, "✓") + " " + sio.T("ping_ok", co(cyn, n), co(cyn, who)) + " " + co(dim, h.URL)
-	cs, err := h.Contests()
+	wait(sio.T("w_contests", n), func() { cs, err = h.Contests() })
 	if err != nil {
 		fmt.Println(hd)
 	}

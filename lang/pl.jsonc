@@ -38,7 +38,7 @@
 	"tree_na": "Drzewo niedostępne na %s (to oioioi nie ma api listy konkursów/zadań)",
 	"empty": "(brak zadań)",
 	"loading": "wczytywanie",
-	"tree_help": "↑↓/jk ruch  ←→/hl zwiń  spacja/enter otwórz  q wyjście",
+	"tree_help": "↑↓/jk ruch  ←→/hl zwiń  spacja/enter otwórz  u wyślij  q wyjście",
 	"lang_name": "polski",
 	"lang_set": "ustawiono język %s (%s)",
 	"unk_lang": "nieznany język %s, zobacz %s",
@@ -53,5 +53,16 @@
 	"k_quotes": "cytaty",
 	"on": "wł.",
 	"off": "wył.",
-	"quotes_set": "cytaty są teraz %s"
+	"quotes_set": "cytaty są teraz %s",
+	"w_ping": "sprawdzam logowanie na %s",
+	"w_contests": "pobieram konkursy z %s",
+	"w_probs": "pobieram zadania z %s",
+	"w_probs_n": "pobieram zadania %s",
+	"w_subs": "pobieram zgłoszenia do %s (%s)",
+	"w_up": "wysyłam %s do %s",
+	"w_quote": "pobieram cytaty",
+	"up_ask": "wyślij do %s: ",
+	"up_ok": "wysłano %s do %s, id %s",
+	"up_pick": "najedź na zadanie, żeby wysłać",
+	"up_busy": "jeszcze wysyłam, chwila"
 }

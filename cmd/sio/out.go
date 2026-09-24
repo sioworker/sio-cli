@@ -44,10 +44,16 @@ func link(on bool, url, s string) string { // osc 8, plain url when piped
 func co(c, s string) string { return col(colOut, c, s) }
 func ce(c, s string) string { return col(colErr, c, s) }
 
-func ok(s string)   { fmt.Println(co(grn, "✓"), s) }
-func warn(s string) { fmt.Fprintln(os.Stderr, ce(ylw, "!"), s) }
+func ok(s string) { fmt.Println(co(grn, "✓"), s) }
+func warn(s string) { // clears a running spinner line first, it redraws below
+	errMu.Lock()
+	defer errMu.Unlock()
+	fmt.Fprint(os.Stderr, "\r\x1b[K")
+	fmt.Fprintln(os.Stderr, ce(ylw, "!"), s)
+}
 
 func die(s string) {
+	unspin()
 	fmt.Fprintln(os.Stderr, ce(red, "✗"), s)
 	os.Exit(1)
 }
@@ -157,7 +163,9 @@ func wrap(s string, w int) []string {
 }
 
 func quote() {
-	q, has := sio.RandQuote()
+	var q sio.Quote
+	var has bool
+	wait(sio.T("w_quote"), func() { q, has = sio.RandQuote() }) // only slow on the weekly refresh
 	if !has {
 		return
 	}

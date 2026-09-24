@@ -21,10 +21,10 @@ You can also specify where to put the binary:
 curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | SIO_BIN=/usr/local/bin/ sh
 ```
 
-It asks which completions to install (the shells you have are ticked already, bash only if its your shell). To skip the question:
+It asks which completions to install, to skip the question:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | SIO_COMP="fish zsh" sh # or SIO_COMP=none
+curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | SIO_COMP=none sh
 ```
 
 </details>
@@ -83,12 +83,79 @@ TODO (currently unavailable)
 
 <br>
 
-Currently unsupported
+In PowerShell (installs to `%LOCALAPPDATA%\Programs\sio`, adds it to your PATH):
+
+```powershell
+irm https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.ps1 | iex
+```
+
+`$env:SIO_BIN` and `$env:SIO_COMP` (`pwsh` / `none`) work like on linux. Still experimental, tell us if something breaks.
 
 </details>
 
 # Usage
 
-[TO-DO]
+## Setup
+
+Add a host with your API token, which you get from `<host>/api/token` while logged in on the site:
+
+```sh
+sio config hosts add szkopul szkopul.edu.pl   # asks for the token
+sio config hosts add --main oboz oboz.talent.edu.pl
+sio ping                                      # ✓ oboz: logged in as ...
+```
+
+The first host you add becomes the main one; `--main` or `sio config hosts main <name>` switch it. Any command that takes a contest also takes `host/contest` to pick a host just for that call, e.g. `sio probs szkopul/kurs-oi`.
+
+Older OIOIOI instances (like the camp one) accept submissions over the API but can't report results. To still see your verdicts in the terminal, log in once:
+
+```sh
+sio config hosts login oboz   # username + password, only the session gets saved
+```
+
+## Browsing
+
+```sh
+sio info          # who you're logged in as + the contests you can see
+sio tree          # browse contests -> problems, see keys below
+sio probs c1      # problems in c1, with your score and submissions left
+sio subs c1       # your submissions in c1, newest first
+sio subs c1 abc   # only for problem abc
+```
+
+`sio tree` keys:
+
+| key | does |
+|---|---|
+| ↑↓ / j k | move |
+| space / enter | open or close a contest, open a problem in the browser |
+| ← → / h l | close / open, ← on a problem jumps to its contest |
+| u | submit a file to the selected problem |
+| g G, PgUp PgDn | jump |
+| q | quit |
+
+## Submitting
+
+```sh
+sio submit c1 abc          # finds abc.cpp (or the only abc.*) in the current dir
+sio submit c1 abc sol.py   # or name the file yourself
+sio sub c1 abc.cpp         # sub = submit, prob is taken from the file name
+sio submit -n c1 abc       # dont wait for the results
+```
+
+It waits until the submission is judged and shows the verdict, colored by score: red under 50, yellow under 80, green from 80 up.
+
+## Config
+
+```sh
+sio config                 # overview: config file, hosts, language, quotes
+sio config hosts           # list hosts, ● = main
+sio config hosts rm <name>
+sio config hosts token <name>
+sio config lang pl         # en, pl, lolcat(best)
+sio config quotes off      # the random programming quote after each command
+```
+
+Everything lives in `~/.config/sio/cfg.json`. Your own translations go in `~/.config/sio/lang/<code>.jsonc`.
 
 Run `sio` for all cmds.

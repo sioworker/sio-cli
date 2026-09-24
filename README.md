@@ -30,7 +30,7 @@ curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/i
 </details>
 
 <details>
-<summary><b>Source</b></summary>
+<summary><b>Source ( + pkgit)</b></summary>
 
 <br>
 
@@ -40,6 +40,11 @@ Needs Go 1.27.1+, git and make:
 git clone https://github.com/sioworker/sio-cli && cd sio-cli && make install
 ```
 
+With [pkgit](https://git.symlinx.net/pkgit):
+
+```sh
+pkgit -i https://github.com/sioworker/sio-cli
+```
 </details>
 
 <details>

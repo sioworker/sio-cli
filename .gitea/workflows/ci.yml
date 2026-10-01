@@ -1,0 +1,62 @@
+name: ci # git.lab, .github/ is for github (gitea skips it when this dir exists)
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: command -v cargo || { curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal -c clippy; echo "$HOME/.cargo/bin" >> $GITHUB_PATH; }
+      - run: cargo clippy --locked -- -D warnings && cargo test --locked
+  release:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: command -v cargo || { curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal; echo "$HOME/.cargo/bin" >> $GITHUB_PATH; }
+      - run: rustup target add x86_64-unknown-linux-musl && sudo apt-get update -q && sudo apt-get install -yq musl-tools
+      - name: build + aur files
+        run: |
+          v=${GITHUB_REF_NAME#v}; cv=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          [ "$v" = "$cv" ] || { echo "tag $v != Cargo.toml $cv"; exit 1; }
+          cargo build --release --locked --target x86_64-unknown-linux-musl
+          mkdir dist && cp target/x86_64-unknown-linux-musl/release/sio dist/sio-linux-amd64
+          d=$(sed -n 's/^description = "\(.*\)"/\1/p' Cargo.toml | head -1); src="git+https://github.com/sioworker/sio-cli.git#tag=v$v"
+          cat > dist/PKGBUILD <<P
+          # Maintainer: hx4c
+          pkgname=sio-cli
+          pkgver=$v
+          pkgrel=1
+          pkgdesc="$d"
+          arch=('x86_64' 'aarch64')
+          url="https://github.com/sioworker/sio-cli"
+          license=('Apache-2.0')
+          depends=('gcc-libs' 'glibc')
+          makedepends=('cargo' 'git')
+          source=("$src")
+          sha256sums=('SKIP')
+          prepare() { cd sio-cli; export RUSTUP_TOOLCHAIN=stable; cargo fetch --locked --target "\$(rustc -vV | sed -n 's/host: //p')"; }
+          build() { cd sio-cli; export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target; cargo build --frozen --release; }
+          check() { cd sio-cli; export RUSTUP_TOOLCHAIN=stable; cargo test --frozen; }
+          package() {
+          	cd sio-cli
+          	install -Dm755 target/release/sio "\$pkgdir/usr/bin/sio"
+          	install -Dm644 LICENSE NOTICE -t "\$pkgdir/usr/share/licenses/\$pkgname/"
+          	install -Dm644 completions/sio.bash "\$pkgdir/usr/share/bash-completion/completions/sio"
+          	install -Dm644 completions/_sio "\$pkgdir/usr/share/zsh/site-functions/_sio"
+          	install -Dm644 completions/sio.fish "\$pkgdir/usr/share/fish/vendor_completions.d/sio.fish"
+          }
+          P
+          sed -i 's/^          //' dist/PKGBUILD
+          { printf 'pkgbase = sio-cli\n'; for l in "pkgdesc = $d" "pkgver = $v" "pkgrel = 1" "url = https://github.com/sioworker/sio-cli" "arch = x86_64" "arch = aarch64" "license = Apache-2.0" "makedepends = cargo" "makedepends = git" "depends = gcc-libs" "depends = glibc" "source = $src" "sha256sums = SKIP"; do printf '\t%s\n' "$l"; done; printf '\npkgname = sio-cli\n'; } > dist/.SRCINFO
+          cp dist/.SRCINFO dist/SRCINFO && cd dist && sha256sum sio-linux-amd64 > sha256sums.txt && ls -la
+      - name: git.lab release
+        env: { T: "${{ secrets.GITHUB_TOKEN }}" }
+        run: |
+          A=http://gitea:3000/api/v1/repos/${{ github.repository }}
+          id=$(curl -sf -H "Authorization: token $T" -H 'Content-Type: application/json' -d "{\"tag_name\":\"$GITHUB_REF_NAME\",\"name\":\"$GITHUB_REF_NAME\",\"body\":\"$(git log -1 --format=%s | tr -d '\"')\"}" $A/releases | python3 -c 'import json,sys;print(json.load(sys.stdin)["id"])')
+          for f in dist/sio-linux-amd64 dist/sha256sums.txt dist/PKGBUILD dist/SRCINFO; do curl -sf -H "Authorization: token $T" -F "attachment=@$f" "$A/releases/$id/assets?name=$(basename $f)" >/dev/null && echo "uploaded $f"; done

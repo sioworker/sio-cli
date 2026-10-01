@@ -3,34 +3,53 @@ name: build
 on:
   push:
     branches: [main]
-    paths: ['**.go', go.mod, go.sum, 'lang/**']
+    paths: ['src/**', Cargo.toml, Cargo.lock, 'lang/**']
   pull_request:
-    paths: ['**.go', go.mod, go.sum, 'lang/**']
+    paths: ['src/**', Cargo.toml, Cargo.lock, 'lang/**']
 
 permissions:
   contents: write
 
 jobs:
   build:
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, out: sio-linux-amd64 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, out: sio-linux-arm64 }
+          - { os: macos-latest, target: x86_64-apple-darwin, out: sio-darwin-amd64 }
+          - { os: macos-latest, target: aarch64-apple-darwin, out: sio-darwin-arm64 }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, out: sio-windows-amd64.exe }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup target add ${{ matrix.target }}
+      - if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: cargo clippy --locked -- -D warnings && cargo test --locked
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - shell: bash
+        run: |
+          mkdir dist
+          cp target/${{ matrix.target }}/release/sio$([[ ${{ matrix.target }} == *windows* ]] && echo .exe) dist/${{ matrix.out }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.out }}
+          path: dist/${{ matrix.out }}
+
+  release:
+    needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/download-artifact@v8
         with:
-          go-version-file: go.mod
-      - run: go vet ./...
-      - run: go test ./...
-      - name: build
-        run: |
-          mkdir dist
-          for t in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
-            os=${t%/*} arch=${t#*/} ext=
-            [ $os = windows ] && ext=.exe
-            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath -ldflags=-s -o dist/sio-$os-$arch$ext ./cmd/sio
-          done
-          cd dist && sha256sum * > sha256sums.txt
+          path: dist
+          merge-multiple: true
+      - run: cd dist && chmod +x sio-* && sha256sum * > sha256sums.txt && ls -la
       - name: release
-        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

@@ -1,0 +1,30 @@
+[package]
+name = "sio-cli"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+authors = ["hx4c"]
+license = "Apache-2.0"
+description = "CLI for submitting to OIOIOI (sio2) instances"
+repository = "https://github.com/sioworker/sio-cli"
+
+[[bin]]
+name = "sio"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+crossterm = "0.29"
+dirs = "6"
+fastrand = "2"
+html-escape = "0.2"
+regex = "1"
+rpassword = "7"
+rust-embed = { version = "8", features = ["debug-embed"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = "2"
+
+[profile.release]
+strip = true
+lto = true

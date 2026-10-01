@@ -1,5 +1,5 @@
 -- pkgit -i https://github.com/sioworker/sio-cli
--- needs go 1.27+ and make on the system, not built from git here
+-- needs rust 1.88+ (cargo) on the system, not built from git here
 
 bldit_version   = "1.2.0"
 package_version = "0.1.0"
@@ -14,40 +14,60 @@ local function sh(c)
 	return l
 end
 
-local function go_ok()
-	local v = sh("go version")
-	local ma, mi = v:match("go(%d+)%.(%d+)")
+local function rust_ok()
+	local v = sh("rustc --version")
+	local ma, mi = v:match("rustc (%d+)%.(%d+)")
 	ma, mi = tonumber(ma), tonumber(mi)
-	if ma and (ma > 1 or mi >= 27) then return true end
-	if ma and mi >= 21 and sh("go env GOTOOLCHAIN") ~= "local" then return true end
-	local got = ma and ("found go" .. ma .. "." .. mi .. (mi >= 21 and " with GOTOOLCHAIN=local" or "")) or "no go found"
-	io.stderr:write("sio needs go 1.27+ to build (" .. got .. ")\ninstall it first: your distros go package or https://go.dev/dl\n")
+	local cg = sh("cargo --version") ~= ""
+	if ma and cg and (ma > 1 or mi >= 88) then return true end
+	local got = not ma and "no rust found" or not cg and "no cargo found" or ("found rustc " .. ma .. "." .. mi)
+	io.stderr:write("sio needs rust 1.88+ (rustc + cargo) to build (" .. got .. ")\ninstall it first: https://rustup.rs or your distros rust package\n")
 	return false
 end
+
+local function q(s) return "'" .. s:gsub("'", "'\\''") .. "'" end -- sh quote
+
+local function put(un) -- cp or rm the bin + completions under prefix, user prefix keeps fish in ~/.config like before
+	local h, b, sh_ = os.getenv("HOME") or "", prefix .. "/bin", prefix .. "/share"
+	local fish = prefix == h .. "/.local" and h .. "/.config/fish/completions" or sh_ .. "/fish/vendor_completions.d"
+	local f = {
+		{ "target/release/sio", b, "sio" },
+		{ "completions/sio.fish", fish, "sio.fish" },
+		{ "completions/sio.bash", sh_ .. "/bash-completion/completions", "sio" },
+		{ "completions/_sio", sh_ .. "/zsh/site-functions", "_sio" },
+	}
+	local c = {}
+	for _, x in ipairs(f) do
+		c[#c + 1] = un and ("rm -f " .. q(x[2] .. "/" .. x[3])) or ("mkdir -p " .. q(x[2]) .. " && cp " .. q(x[1]) .. " " .. q(x[2] .. "/" .. x[3]))
+	end
+	return table.concat(c, " && ")
+end
+
+local log = " >/tmp/sio_build.log 2>&1"
 
 targets = {
 	default = {
 		build = function()
-			if not go_ok() then return 1 end
-			return os.execute("make")
+			if not rust_ok() then return 1 end
+			return os.execute("cargo build --release --locked")
 		end,
 		install = function()
-			return os.execute("make install PREFIX=" .. prefix)
+			return os.execute(put(false))
 		end,
 		uninstall = function()
-			return os.execute("make uninstall PREFIX=" .. prefix)
+			return os.execute(put(true))
 		end,
 	},
 	quiet = {
 		build = function()
-			if not go_ok() then return 1 end
-			return os.execute("make >/tmp/sio_build.log 2>&1")
+			if not rust_ok() then return 1 end
+			return os.execute("cargo build --release --locked" .. log)
 		end,
 		install = function()
-			return os.execute("make install PREFIX=" .. prefix .. " >/tmp/sio_build.log 2>&1")
+			return os.execute("{ " .. put(false) .. "; }" .. log)
 		end,
 		uninstall = function()
-			return os.execute("make uninstall PREFIX=" .. prefix .. " >/tmp/sio_build.log 2>&1")
+			return os.execute("{ " .. put(true) .. "; }" .. log)
 		end,
 	},
 }

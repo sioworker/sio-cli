@@ -34,11 +34,13 @@ curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/i
 
 <br>
 
-Needs Go 1.27.1+, git and make:
+Needs Rust 1.88+ (cargo) and git:
 
 ```sh
-git clone https://github.com/sioworker/sio-cli && cd sio-cli && make install
+cargo install --git https://github.com/sioworker/sio-cli
 ```
+
+Installs to `~/.cargo/bin/sio`, shell completions are in [`completions/`](completions).
 
 With [pkgit](https://git.symlinx.net/pkgit):
 
@@ -66,7 +68,7 @@ Install:
 nix profile install github:sioworker/sio-cli
 ```
 
-Dev shell with Go + gopls:
+Dev shell with cargo, clippy, rustfmt and rust-analyzer:
 
 ```sh
 nix develop github:sioworker/sio-cli

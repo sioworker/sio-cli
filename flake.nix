@@ -8,13 +8,11 @@
 			each = f: nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ] (s: f nixpkgs.legacyPackages.${s});
 		in {
 			packages = each (pkgs: rec {
-				sio = (pkgs.buildGoModule.override { go = pkgs.go_1_27; }) { # go.mod needs 1.27, def go is older
+				sio = pkgs.rustPlatform.buildRustPackage {
 					pname = "sio-cli";
 					version = "0-${self.shortRev or "dirty"}";
 					src = self;
-					vendorHash = "sha256-fxxp7ECuMMmLw7L5/lPi7lfmJM2p+Te9AqXm5Xed3G0=";
-					subPackages = [ "cmd/sio" ];
-					ldflags = [ "-s" ];
+					cargoLock.lockFile = ./Cargo.lock; # deps hashed from the lock, no vendorHash to bump
 					nativeBuildInputs = [ pkgs.installShellFiles ];
 					postInstall = ''
 						installShellCompletion --cmd sio --bash completions/sio.bash --fish completions/sio.fish --zsh completions/_sio
@@ -29,7 +27,7 @@
 				default = sio;
 			});
 			devShells = each (pkgs: {
-				default = pkgs.mkShell { packages = [ pkgs.go_1_27 pkgs.gopls ]; };
+				default = pkgs.mkShell { packages = [ pkgs.cargo pkgs.rustc pkgs.clippy pkgs.rustfmt pkgs.rust-analyzer ]; };
 			});
 		};
 }

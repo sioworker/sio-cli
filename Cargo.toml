@@ -3,10 +3,11 @@ name = "sio-cli"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
-authors = ["hx4c"]
+authors = ["sioworker"]
 license = "Apache-2.0"
 description = "CLI for submitting to OIOIOI (sio2) instances"
 repository = "https://github.com/sioworker/sio-cli"
+keyword = ["sio", "sio2", "oioioi", "sio2project", "cli"]
 
 [[bin]]
 name = "sio"

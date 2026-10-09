@@ -156,3 +156,21 @@ sio config quotes off      # the random programming quote after each command
 ```
 
 Run `sio` for all cmds.
+
+
+
+
+
+TODO, when on pc work on this:
+## sio-cli in 10 seconds
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/sioworker/sio-cli/refs/heads/main/install.sh | sh
+sio config hosts add szkopul szkopui.edu.pl
+sio tree
+sio up <contest> abc.cpp
+sio subs <contest>
+```
+
+also on nix: `nix run github:sioworker/sio-cli -- info`
+
